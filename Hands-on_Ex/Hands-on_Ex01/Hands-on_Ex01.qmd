@@ -1,0 +1,46 @@
+---
+title: "Hands-on Exercise 1: Geospatial Data Science with R"
+
+execute:
+  warning: false
+date: "`r Sys.Date()`"
+---
+
+<!-- r Sys.Date() gives the last updated time, while warning: false will hide any error messages -->
+
+# Getting Started
+
+## Installing and loading R packages
+
+Install and load the required packages:
+
+-   If needed, pacman
+
+    -    Install via Tools -\> Install Packages... -\> Type "pacman" into the "Packages" line
+
+-   tidyverse
+
+-   sf
+
+```{r}
+pacman::p_load(sf, tidyverse)
+```
+
+## Importing a geospatial data in shapefile format
+
+```{r}
+#|eval: false
+mpsz = st_read(dsn = "data/Geospatial",
+               layer = "MP14_SUBZONE_WEB_PL")
+```
+
+## Plotting the Geospatial data
+
+```{=html}
+<!--eval: false will hide output, while echo: false will hide the code chunk 
+Remember to use #| for the above commented code -->
+```
+```{r}
+
+plot(mpsz)
+```

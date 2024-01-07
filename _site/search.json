@@ -12,5 +12,12 @@
     "title": "IS415-GAA-2024",
     "section": "",
     "text": "This is the course website of IS415 I study this term. You will find my course work on this website."
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html",
+    "href": "Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html",
+    "title": "Hands-on Exercise 1: Geospatial Data Science with R",
+    "section": "",
+    "text": "Install and load the required packages:\n\nIf needed, pacman\n\nInstall via Tools -> Install Packages… -> Type “pacman” into the “Packages” line\n\ntidyverse\nsf\n\n\npacman::p_load(sf, tidyverse)\n\n\n\n\n\n#|eval: false\nmpsz = st_read(dsn = \"data/Geospatial\",\n               layer = \"MP14_SUBZONE_WEB_PL\")\n\nReading layer `MP14_SUBZONE_WEB_PL' from data source \n  `C:\\OdeliaPeh\\IS415-GAA-2024\\Hands-on_Ex\\Hands-on_Ex01\\data\\Geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 323 features and 15 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21\n\n\n\n\n\n\n\nplot(mpsz)"
   }
 ]
