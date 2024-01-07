@@ -16,7 +16,7 @@ Install and load the required packages:
 
 -   If needed, pacman
 
-    -    Install via Tools -\> Install Packages... -\> Type "pacman" into the "Packages" line
+    -   Install via Tools -\> Install Packages... -\> Type "pacman" into the "Packages" line
 
 -   tidyverse
 
@@ -26,15 +26,69 @@ Install and load the required packages:
 pacman::p_load(sf, tidyverse)
 ```
 
-## Importing a geospatial data in shapefile format
+## Importing geospatial data
+
+There are three layers of geospatial data that need to be imported into R using *st_read()* of the **sf package**:
+
+1.  `MP14_SUBZONE_WEB_PL`, a polygon feature layer in ESRI shapefile format,
+
+2.  `CyclingPath`, a line feature layer in ESRI shapefile format, and
+
+3.  `PreSchool`, a point feature layer in kml file format.
 
 ```{r}
-#|eval: false
 mpsz = st_read(dsn = "data/Geospatial",
                layer = "MP14_SUBZONE_WEB_PL")
 ```
 
+```{r}
+cyclingpath = st_read(dsn = "data/Geospatial", 
+                         layer = "CyclingPathGazette")
+```
+
+```{r}
+preschool = st_read("data/Geospatial/PreSchoolsLocation.kml")
+```
+
+<!-- Note that for kml, the entire path and extension need to be provided, while for shp there is no need for this -->
+
+## Checking the Content of A Simple Feature Data Frame
+
+Retrieve information related to the content of a simple feature data frame using:
+
+-   st_geometry()
+
+-   glimpse()
+
+-   head()
+
+### Working with st_geometry()
+
+A general way to retrieve and display basic information of feature classes such as type of geometry, the geographic extent of the features and the coordinate system of the data.
+
+```{r}
+st_geometry(mpsz)
+```
+
+### Working with glimpse()
+
+Beside the basic feature information, we also would like to learn more about the associated attribute information in the data frame. *glimpse()* reveals the data type of each field.
+
+```{r}
+glimpse(mpsz)
+```
+
+### Working with head()
+
+Sometimes we would like to reveal complete information of a feature object, this is the job of *head()*. We can also select the number of records that we would like to see using this function.
+
+```{r}
+head(mpsz, n=5)
+```
+
 ## Plotting the Geospatial data
+
+In geospatial data science, by looking at the feature information is not enough. We are also interested to visualise the geospatial features. This is where the function *plot()* comes in. Note that *plot()* is only used for a quick look.
 
 ```{=html}
 <!--eval: false will hide output, while echo: false will hide the code chunk 
@@ -44,3 +98,15 @@ Remember to use #| for the above commented code -->
 
 plot(mpsz)
 ```
+
+To plot only geometry:
+```{r}
+plot(st_geometry(mpsz))
+```
+
+To plot using a specific attribute:
+```{r}
+plot(mpsz["PLN_AREA_N"])
+```
+
+
