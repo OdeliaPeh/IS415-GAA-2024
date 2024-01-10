@@ -33,5 +33,12 @@
     "title": "Hands-on Exercise 2: Thematic Mapping and GeoVisualisation with R",
     "section": "",
     "text": "In this exercise, we learn how to plot and visualize choropleth maps using an R package called **tmap** package."
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#installing-and-loading-r-packages",
+    "href": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#installing-and-loading-r-packages",
+    "title": "Hands-on Exercise 2: Thematic Mapping and GeoVisualisation with R",
+    "section": "Installing and loading R packages",
+    "text": "Installing and loading R packages\nThe packages that are used in this hands on exercise are:\n\ntmap\nreadr for importing delimited text file\ntidyr for tidying data\ndplyr for wrangling data\nsf for handling geospatial data\n\nWe use the following to install and load the packages in Rstudio:\n\npacman::p_load(sf, tmap, tidyverse)\n\n(Note that readr, tidyr and dplyr are part of tidyverse package)"
   }
 ]

@@ -7,3 +7,26 @@ date: "`r Sys.Date()`"
 ---
 
 In this exercise, we learn how to plot and visualize choropleth maps using an R package called \*\*tmap\*\* package.
+
+## Installing and loading R packages
+
+The packages that are used in this hands on exercise are:
+
+-   [**tmap**](https://cran.r-project.org/web/packages/tmap/)
+
+-   [**readr**](https://readr.tidyverse.org/) for importing delimited text file
+
+-   [**tidyr**](https://tidyr.tidyverse.org/) for tidying data
+
+-   [**dplyr**](https://dplyr.tidyverse.org/) for wrangling data
+
+-   [**sf**](https://cran.r-project.org/web/packages/sf/) for handling geospatial data
+
+We use the following to install and load the packages in Rstudio:
+
+```{r}
+#| eval: false
+pacman::p_load(sf, tmap, tidyverse)
+```
+
+(Note that readr, tidyr and dplyr are part of tidyverse package)
