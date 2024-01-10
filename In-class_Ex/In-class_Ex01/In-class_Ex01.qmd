@@ -3,19 +3,7 @@ title: "In-class Exercise 1"
 
 execute:
   warning: false
-date-modified: "last-modified"
+date: "`r Sys.Date()`"
 ---
 
-While there was no in-class exercise for week 1, I do want to record that Prof Kam explained to me a different way to display the modified date.
-
-Instead of 
-```{r}
-#| eval: false
-date: "`r Sys.Date()`"
-```
-
-We should use
-```{r}
-#| eval: false
-date-modified: "last-modified"
-```
+There was no in-class exercise for week 1.

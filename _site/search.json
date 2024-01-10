@@ -25,6 +25,6 @@
     "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html",
     "title": "In-class Exercise 1",
     "section": "",
-    "text": "Instead of\n\ndate: \"`r Sys.Date()`\"\n\nWe should use\n\ndate-modified: \"last-modified\""
+    "text": "There was no in-class exercise for week 1."
   }
 ]
