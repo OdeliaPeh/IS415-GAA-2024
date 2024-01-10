@@ -25,6 +25,6 @@
     "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html",
     "title": "In-class Exercise 1",
     "section": "",
-    "text": "<div>\n  Hi this is div1\n</div>\n  \n<div>\n  Hi this is div2\n</div>"
+    "text": "Instead of\n\ndate: \"`r Sys.Date()`\"\n\nWe should use\n\ndate-modified: \"last-modified\""
   }
 ]
