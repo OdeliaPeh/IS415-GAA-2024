@@ -26,5 +26,12 @@
     "title": "In-class Exercise 1",
     "section": "",
     "text": "There was no in-class exercise for week 1."
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html",
+    "href": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html",
+    "title": "Hands-on Exercise 2: Thematic Mapping and GeoVisualisation with R",
+    "section": "",
+    "text": "In this exercise, we learn how to plot and visualize choropleth maps using an R package called **tmap** package."
   }
 ]
