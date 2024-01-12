@@ -30,3 +30,22 @@ pacman::p_load(sf, tmap, tidyverse)
 ```
 
 (Note that readr, tidyr and dplyr are part of tidyverse package)
+
+## Importing the data
+
+Two data sets are needed to create the choropleth map. They are:
+
+-   Master Plan 2014 Subzone Boundary (Web) in ESRI format from [data.gov.sg](https://beta.data.gov.sg/)
+
+-   Singapore Residents by Planning Area/Subzone, Age Group, Sex and Type of Dwelling, June 2011-2020 in csv format from the [Department of Statistics, Singapore](https://www.singstat.gov.sg/)
+
+## Importing Data into R
+### Geospatial data
+We will use *st_read* to import the geospatial data into R.
+```{r}
+mpsz <- st_read(dsn = "chap02/data/geospatial", 
+                layer = "MP14_SUBZONE_WEB_PL")
+```
+
+
+### Aspatial data

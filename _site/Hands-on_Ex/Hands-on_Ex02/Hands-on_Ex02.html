@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2024-01-10">
+<meta name="dcterms.date" content="2024-01-12">
 
 <title>IS415-GAA-2024 - Hands-on Exercise 2: Thematic Mapping and GeoVisualisation with R</title>
 <style>
@@ -189,6 +189,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
    
   <ul>
   <li><a href="#installing-and-loading-r-packages" id="toc-installing-and-loading-r-packages" class="nav-link active" data-scroll-target="#installing-and-loading-r-packages">Installing and loading R packages</a></li>
+  <li><a href="#importing-the-data" id="toc-importing-the-data" class="nav-link" data-scroll-target="#importing-the-data">Importing the data</a></li>
   </ul>
 </nav>
     </div>
@@ -208,7 +209,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 10, 2024</p>
+      <p class="date">January 12, 2024</p>
     </div>
   </div>
     
@@ -233,6 +234,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, tmap, tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>(Note that readr, tidyr and dplyr are part of tidyverse package)</p>
+</section>
+<section id="importing-the-data" class="level2">
+<h2 class="anchored" data-anchor-id="importing-the-data">Importing the data</h2>
+<p>Two data sets are needed to create the choropleth map. They are:</p>
+<ul>
+<li><p>Master Plan 2014 Subzone Boundary (Web) in ESRI format from <a href="https://beta.data.gov.sg/">data.gov.sg</a></p></li>
+<li><p>Singapore Residents by Planning Area/Subzone, Age Group, Sex and Type of Dwelling, June 2011-2020 in csv format from the <a href="https://www.singstat.gov.sg/">Department of Statistics, Singapore</a></p></li>
+</ul>
 
 
 </section>

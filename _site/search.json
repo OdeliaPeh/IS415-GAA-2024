@@ -40,5 +40,12 @@
     "title": "Hands-on Exercise 2: Thematic Mapping and GeoVisualisation with R",
     "section": "Installing and loading R packages",
     "text": "Installing and loading R packages\nThe packages that are used in this hands on exercise are:\n\ntmap\nreadr for importing delimited text file\ntidyr for tidying data\ndplyr for wrangling data\nsf for handling geospatial data\n\nWe use the following to install and load the packages in Rstudio:\n\npacman::p_load(sf, tmap, tidyverse)\n\n(Note that readr, tidyr and dplyr are part of tidyverse package)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#importing-the-data",
+    "href": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#importing-the-data",
+    "title": "Hands-on Exercise 2: Thematic Mapping and GeoVisualisation with R",
+    "section": "Importing the data",
+    "text": "Importing the data\nTwo data sets are needed to create the choropleth map. They are:\n\nMaster Plan 2014 Subzone Boundary (Web) in ESRI format from data.gov.sg\nSingapore Residents by Planning Area/Subzone, Age Group, Sex and Type of Dwelling, June 2011-2020 in csv format from the Department of Statistics, Singapore"
   }
 ]
