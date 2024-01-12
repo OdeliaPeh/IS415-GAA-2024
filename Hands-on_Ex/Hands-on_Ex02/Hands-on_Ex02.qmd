@@ -25,7 +25,6 @@ The packages that are used in this hands on exercise are:
 We use the following to install and load the packages in Rstudio:
 
 ```{r}
-#| eval: false
 pacman::p_load(sf, tmap, tidyverse)
 ```
 
@@ -43,9 +42,16 @@ Two data sets are needed to create the choropleth map. They are:
 ### Geospatial data
 We will use *st_read* to import the geospatial data into R.
 ```{r}
-mpsz <- st_read(dsn = "chap02/data/geospatial", 
+mpsz <- st_read(dsn = "data/Geospatial", 
                 layer = "MP14_SUBZONE_WEB_PL")
+
+mpsz
 ```
 
 
 ### Aspatial data
+We will use *read_csv* to import the aspatial data into R.
+```{r}
+popdata <- read_csv("data/Aspatial/respopagesextod2011to2020.csv")
+```
+
