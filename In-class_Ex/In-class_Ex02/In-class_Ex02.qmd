@@ -1,0 +1,9 @@
+---
+title: "In-class Exercise 2"
+
+execute:
+  warning: false
+date: "`r Sys.Date()`"
+---
+
+These are notes and exercises for week 2.
