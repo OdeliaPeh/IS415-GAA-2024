@@ -231,11 +231,14 @@ buffer_cycling <- st_buffer(cyclingpath,
                                dist=5, nQuadSegs = 30)
 ```
 
+<!-- nQuadSegs determines how smooth the curve is by stating the number of points between two coordinate pairs -->
+
 This is followed by calculating the area of the buffers as shown in the code chunk below.
 
 ```{r}
 buffer_cycling$AREA <- st_area(buffer_cycling)
 ```
+
 Lastly, sum() of Base R will be used to derive the total land involved
 
 ```{r}
@@ -255,11 +258,13 @@ A pre-school service group want to find out the numbers of pre-schools in each P
 The code chunk below performs two operations at one go. Firstly, identify pre-schools located inside each Planning Subzone by using *st_intersects()*. Next, *length()* of Base R is used to calculate numbers of pre-schools that fall inside each planning subzone.
 
 WARNING: DO NOT MIX UP WITH st_intersection()
+
 ```{r}
 mpsz3414$`PreSch Count`<- lengths(st_intersects(mpsz3414, preschool3414))
 ```
 
 You can check the summary statistics of the newly derived PreSch Count field by using summary() as shown in the code chunk below.
+
 ```{r}
 summary(mpsz3414$`PreSch Count`)
 ```
@@ -271,6 +276,7 @@ top_n(mpsz3414, 1, `PreSch Count`)
 ```
 
 ### Density of pre-school by planning subzone
+
 Firstly, the code chunk below uses st_area() of sf package to derive the area of each planning subzone.
 
 ```{r}
@@ -286,6 +292,7 @@ mpsz3414 <- mpsz3414 %>%
 ```
 
 ## Exploratory Data Analysis (EDA)
+
 In practice, many geospatial analytics start with Exploratory Data Analysis. In this section, you will learn how to use appropriate ggplot2 functions to create functional and yet truthful statistical graphs for EDA purposes.
 
 Firstly, we will plot a histogram to reveal the distribution of PreSch Density. Conventionally, hist() of R Graphics will be used as shown in the code chunk below.
@@ -313,6 +320,7 @@ ggplot(data=mpsz3414,
 ### Using ggplot2 method, plot a scatterplot showing the relationship between Pre-school Density and Pre-school Count.
 
 Personal try:
+
 ```{r}
 ggplot(data=mpsz3414, 
        aes(y = `PreSch Count`,
@@ -325,6 +333,7 @@ ggplot(data=mpsz3414,
 ```
 
 Solution (cleaner):
+
 ```{r}
 ggplot(data=mpsz3414, 
        aes(y = `PreSch Count`, 
