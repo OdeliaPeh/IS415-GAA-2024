@@ -7,3 +7,34 @@ date: "`r Sys.Date()`"
 ---
 
 These are notes and exercises for week 2.
+
+## Packages used
+
+The following R packages will be used in this class:
+
+-   arrow
+
+-   lubridate
+
+-   tidyverse
+
+-   tmap
+
+-   sf
+
+```{r}
+#| eval: false
+pacman::p_load(arrow, lubridate, tidyverse, tmap, sf)
+```
+
+::: callout-important
+## New formatting trick
+
+Took a peek at prof's code during the class, found out and tried using callout notes
+:::
+
+## Importing data for exercise
+
+For this exercise, we are using some Grab data that Prof Kam has provided for us.
+
+To import the data,
