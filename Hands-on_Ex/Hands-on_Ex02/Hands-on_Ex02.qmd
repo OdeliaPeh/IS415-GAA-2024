@@ -45,6 +45,7 @@ Two data sets are needed to create the choropleth map. They are:
 We will use *st_read* to import the geospatial data into R.
 
 ```{r}
+#|eval: false
 mpsz <- st_read(dsn = "data/Geospatial", 
                 layer = "MP14_SUBZONE_WEB_PL")
 
@@ -56,6 +57,7 @@ mpsz
 We will use *read_csv* to import the aspatial data into R.
 
 ```{r}
+#|eval: false
 popdata <- read_csv("data/Aspatial/respopagesextod2011to2020.csv")
 ```
 
@@ -96,6 +98,7 @@ In this section, the new functions used are:
 #### Aspatial data preparation
 
 ```{r}
+#|eval: false
 popdata2020 <- popdata %>%
   filter(Time == 2020) %>%
   group_by(PA, SZ, AG) %>%
@@ -123,6 +126,7 @@ Before we can perform the georelational join, one extra step is required to conv
 Without transformation to ensure that the fields are the same, we will be unable to perform the georelational join.
 
 ```{r}
+#|eval: false
 popdata2020 <- popdata2020 %>%
   mutate_at(.vars = vars(PA, SZ), 
           .funs = list(toupper)) %>%
@@ -132,6 +136,7 @@ popdata2020 <- popdata2020 %>%
 Next, *left_join()* of dplyr is used to join the geographical data and attribute table using planning subzone name e.g. SUBZONE_N and SZ as the common identifier.
 
 ```{r}
+#|eval: false
 mpsz_pop2020 <- left_join(mpsz, popdata2020,
                           by = c("SUBZONE_N" = "SZ"))
 ```
@@ -143,7 +148,16 @@ Thing to learn from the code chunk above:
 The next code chunk is to save the new table in the readr(rds) format.
 
 ```{r}
+#|eval: false
 write_rds(mpsz_pop2020, "data/rds/mpszpop2020.rds")
+```
+
+::: callout-important
+Having saved the new table as an rds, there is no need to go through the reformatting of the data again. Instead, we can simply call the rds file directly. For more information, refer to In-class Exercise 2.
+:::
+
+```{r}
+mpsz_pop2020 <- read_rds("data/rds/mpszpop2020.rds")
 ```
 
 ## Choropleth Mapping Geospatial Data Using *tmap*
@@ -295,6 +309,7 @@ tm_shape(mpsz_pop2020)+
 Notice that the distribution of quantile data classification method are more evenly distributed then equal data classification method. Different data classification types are better for different types of maps.
 
 ##### DIY: different number of classes
+
 For this DIY, I will be using the equal data classification type.
 
 ```{r}
@@ -328,7 +343,6 @@ tm_shape(mpsz_pop2020)+
           style = "equal") +
   tm_borders(alpha = 0.5)
 ```
-
 
 #### Plotting choropleth map with custom break
 
@@ -551,6 +565,7 @@ tm_shape(mpsz_pop2020[mpsz_pop2020$REGION_N=="CENTRAL REGION", ])+
 ```
 
 ## Extra DIY: tmap_mode(view)
+
 ```{r}
 tmap_mode("view")
 tmap_options(check.and.fix = TRUE)
