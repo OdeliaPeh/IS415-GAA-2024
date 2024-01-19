@@ -160,3 +160,64 @@ tm_shape(CoastalOutline) +
   tm_shape(childcare_sf) + 
   tm_dots()
 ```
+
+# Geospatial data wrangling
+
+## Converting sf data frames to sp's Spatial\* class
+
+There are many geospatial analysis packages require the input geospatial data in sp’s Spatial\* classes. Hence, we will use *as_Spatial* to convert the three geospatial data from a simple feature dataframe to sp's Spatial\* class.
+
+```{r}
+childcare <- as_Spatial(childcare_sf)
+mpsz <- as_Spatial(mpsz3414_sf)
+sg <- as_Spatial(CoastalOutline)
+```
+
+Below, we can see what the data looks like now
+
+```{r}
+childcare
+```
+
+```{r}
+mpsz
+```
+
+```{r}
+sg
+```
+
+Note how the class has changed entirely to `SpatialPolygonsDataFrame`
+
+## Converting the Spatial\* class to generic sp format
+
+**spatstat** requires the analytical data in ***ppp object form***. There is [no direct way]{.underline} to convert a Spatial\* classes into ppp object. We need to convert the Spatial classes\* into Spatial object first.
+
+This code chunk converts the Spatial\* class into generic sp objects.
+
+```{r}
+childcare_sp <- as(childcare, "SpatialPoints")
+sg_sp <- as(sg, "SpatialPolygons")
+```
+
+```{r}
+childcare_sp
+```
+
+```{r}
+sg_sp
+```
+
+::: callout-note
+It appears that the main difference that can be observed is that a sp object does not include a dataframe of data (such as name and other aspatial data). It is entirely made up of geospatial data.
+:::
+
+## Converting the generic sp format into spatstat’s ppp format
+
+Next, we use the *as.ppp()* function to convert the spatial data into **spatstat's ppp object**. (Finally!)
+
+```{r}
+#| eval: false
+childcare_ppp <- as(childcare_sp, "ppp")
+childcare_ppp
+```

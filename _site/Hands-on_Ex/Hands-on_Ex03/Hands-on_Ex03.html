@@ -155,7 +155,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
  <span class="dropdown-text">Hands-on Exercise 2</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex03.html">
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html">
  <span class="dropdown-text">Hands-on Exercise 3</span></a>
   </li>  
     </ul>
@@ -213,6 +213,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#assigning-the-correct-epsg-code" id="toc-assigning-the-correct-epsg-code" class="nav-link" data-scroll-target="#assigning-the-correct-epsg-code">Assigning the correct EPSG code</a></li>
   <li><a href="#diy-creating-coastaloutline" id="toc-diy-creating-coastaloutline" class="nav-link" data-scroll-target="#diy-creating-coastaloutline">DIY: Creating CoastalOutline</a></li>
   <li><a href="#checking-the-data" id="toc-checking-the-data" class="nav-link" data-scroll-target="#checking-the-data">Checking the data</a></li>
+  </ul></li>
+  <li><a href="#geospatial-data-wrangling" id="toc-geospatial-data-wrangling" class="nav-link" data-scroll-target="#geospatial-data-wrangling">Geospatial data wrangling</a>
+  <ul class="collapse">
+  <li><a href="#converting-sf-data-frames-to-sps-spatial-class" id="toc-converting-sf-data-frames-to-sps-spatial-class" class="nav-link" data-scroll-target="#converting-sf-data-frames-to-sps-spatial-class">Converting sf data frames to sp’s Spatial* class</a></li>
+  <li><a href="#converting-the-spatial-class-to-generic-sp-format" id="toc-converting-the-spatial-class-to-generic-sp-format" class="nav-link" data-scroll-target="#converting-the-spatial-class-to-generic-sp-format">Converting the Spatial* class to generic sp format</a></li>
+  <li><a href="#converting-the-generic-sp-format-into-spatstats-ppp-format" id="toc-converting-the-generic-sp-format-into-spatstats-ppp-format" class="nav-link" data-scroll-target="#converting-the-generic-sp-format-into-spatstats-ppp-format">Converting the generic sp format into spatstat’s ppp format</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -290,7 +296,7 @@ maptools issue
 <pre><code>package 'maptools' successfully unpacked and MD5 sums checked
 
 The downloaded binary packages are in
-    C:\Users\odeli\AppData\Local\Temp\RtmpyUIqsR\downloaded_packages</code></pre>
+    C:\Users\odeli\AppData\Local\Temp\RtmpYpHAwM\downloaded_packages</code></pre>
 </div>
 </div>
 </section>
@@ -612,6 +618,107 @@ Tip
 <div class="cell-output-display">
 <p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
 </div>
+</div>
+</section>
+</section>
+<section id="geospatial-data-wrangling" class="level1">
+<h1>Geospatial data wrangling</h1>
+<section id="converting-sf-data-frames-to-sps-spatial-class" class="level2">
+<h2 class="anchored" data-anchor-id="converting-sf-data-frames-to-sps-spatial-class">Converting sf data frames to sp’s Spatial* class</h2>
+<p>There are many geospatial analysis packages require the input geospatial data in sp’s Spatial* classes. Hence, we will use <em>as_Spatial</em>&nbsp;to convert the three geospatial data from a simple feature dataframe to sp’s Spatial* class.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>childcare <span class="ot">&lt;-</span> <span class="fu">as_Spatial</span>(childcare_sf)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>mpsz <span class="ot">&lt;-</span> <span class="fu">as_Spatial</span>(mpsz3414_sf)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>sg <span class="ot">&lt;-</span> <span class="fu">as_Spatial</span>(CoastalOutline)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Below, we can see what the data looks like now</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>childcare</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>class       : SpatialPointsDataFrame 
+features    : 1925 
+extent      : 11810.03, 45404.24, 25596.33, 49300.88  (xmin, xmax, ymin, ymax)
+crs         : +proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs 
+variables   : 2
+names       :    Name,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Description 
+min values  :   kml_1, &lt;center&gt;&lt;table&gt;&lt;tr&gt;&lt;th colspan='2' align='center'&gt;&lt;em&gt;Attributes&lt;/em&gt;&lt;/th&gt;&lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;ADDRESSBLOCKHOUSENUMBER&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;ADDRESSBUILDINGNAME&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;ADDRESSPOSTALCODE&lt;/th&gt; &lt;td&gt;100044&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;ADDRESSSTREETNAME&lt;/th&gt; &lt;td&gt;44, TELOK BLANGAH DRIVE, #01 - 19/51, SINGAPORE 100044&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;ADDRESSTYPE&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;DESCRIPTION&lt;/th&gt; &lt;td&gt;Child Care Services&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;HYPERLINK&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;LANDXADDRESSPOINT&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;LANDYADDRESSPOINT&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;NAME&lt;/th&gt; &lt;td&gt;PCF SPARKLETOTS PRESCHOOL @ TELOK BLANGAH BLK 44 (CC)&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;PHOTOURL&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;ADDRESSFLOORNUMBER&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;INC_CRC&lt;/th&gt; &lt;td&gt;349C54F201805938&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;FMEL_UPD_D&lt;/th&gt; &lt;td&gt;20211201093837&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;ADDRESSUNITNUMBER&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;/table&gt;&lt;/center&gt; 
+max values  : kml_999,                                            &lt;center&gt;&lt;table&gt;&lt;tr&gt;&lt;th colspan='2' align='center'&gt;&lt;em&gt;Attributes&lt;/em&gt;&lt;/th&gt;&lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;ADDRESSBLOCKHOUSENUMBER&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;ADDRESSBUILDINGNAME&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;ADDRESSPOSTALCODE&lt;/th&gt; &lt;td&gt;99982&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;ADDRESSSTREETNAME&lt;/th&gt; &lt;td&gt;35, ALLANBROOKE ROAD, SINGAPORE 099982&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;ADDRESSTYPE&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;DESCRIPTION&lt;/th&gt; &lt;td&gt;Child Care Services&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;HYPERLINK&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;LANDXADDRESSPOINT&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;LANDYADDRESSPOINT&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;NAME&lt;/th&gt; &lt;td&gt;ISLANDER PRE-SCHOOL PTE LTD&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;PHOTOURL&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;ADDRESSFLOORNUMBER&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;INC_CRC&lt;/th&gt; &lt;td&gt;4F63ACF93EFABE7F&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor=""&gt; &lt;th&gt;FMEL_UPD_D&lt;/th&gt; &lt;td&gt;20211201093837&lt;/td&gt; &lt;/tr&gt;&lt;tr bgcolor="#E3E3F3"&gt; &lt;th&gt;ADDRESSUNITNUMBER&lt;/th&gt; &lt;td&gt;&lt;/td&gt; &lt;/tr&gt;&lt;/table&gt;&lt;/center&gt; </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>mpsz</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>class       : SpatialPolygonsDataFrame 
+features    : 323 
+extent      : 2667.538, 56396.44, 15748.72, 50256.33  (xmin, xmax, ymin, ymax)
+crs         : +proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs 
+variables   : 15
+names       : OBJECTID, SUBZONE_NO, SUBZONE_N, SUBZONE_C, CA_IND, PLN_AREA_N, PLN_AREA_C,       REGION_N, REGION_C,          INC_CRC, FMEL_UPD_D,     X_ADDR,     Y_ADDR,    SHAPE_Leng,    SHAPE_Area 
+min values  :        1,          1, ADMIRALTY,    AMSZ01,      N, ANG MO KIO,         AM, CENTRAL REGION,       CR, 00F5E30B5C9B7AD8,      16409,  5092.8949,  19579.069, 871.554887798, 39437.9352703 
+max values  :      323,         17,    YUNNAN,    YSSZ09,      Y,     YISHUN,         YS,    WEST REGION,       WR, FFCCF172717C2EAF,      16409, 50424.7923, 49552.7904, 68083.9364708,  69748298.792 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>sg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>class       : SpatialPolygonsDataFrame 
+features    : 323 
+extent      : 2667.538, 56396.44, 15748.72, 50256.33  (xmin, xmax, ymin, ymax)
+crs         : +proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs 
+variables   : 15
+names       : OBJECTID, SUBZONE_NO, SUBZONE_N, SUBZONE_C, CA_IND, PLN_AREA_N, PLN_AREA_C,       REGION_N, REGION_C,          INC_CRC, FMEL_UPD_D,     X_ADDR,     Y_ADDR,    SHAPE_Leng,    SHAPE_Area 
+min values  :        1,          1, ADMIRALTY,    AMSZ01,      N, ANG MO KIO,         AM, CENTRAL REGION,       CR, 00F5E30B5C9B7AD8,      16409,  5092.8949,  19579.069, 871.554887798, 39437.9352703 
+max values  :      323,         17,    YUNNAN,    YSSZ09,      Y,     YISHUN,         YS,    WEST REGION,       WR, FFCCF172717C2EAF,      16409, 50424.7923, 49552.7904, 68083.9364708,  69748298.792 </code></pre>
+</div>
+</div>
+<p>Note how the class has changed entirely to <code>SpatialPolygonsDataFrame</code></p>
+</section>
+<section id="converting-the-spatial-class-to-generic-sp-format" class="level2">
+<h2 class="anchored" data-anchor-id="converting-the-spatial-class-to-generic-sp-format">Converting the Spatial* class to generic sp format</h2>
+<p><strong>spatstat</strong> requires the analytical data in <strong><em>ppp object form</em></strong>. There is <u>no direct way</u> to convert a Spatial* classes into ppp object. We need to convert the Spatial classes* into Spatial object first.</p>
+<p>This code chunk converts the Spatial* class into generic sp objects.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>childcare_sp <span class="ot">&lt;-</span> <span class="fu">as</span>(childcare, <span class="st">"SpatialPoints"</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>sg_sp <span class="ot">&lt;-</span> <span class="fu">as</span>(sg, <span class="st">"SpatialPolygons"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>childcare_sp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>class       : SpatialPoints 
+features    : 1925 
+extent      : 11810.03, 45404.24, 25596.33, 49300.88  (xmin, xmax, ymin, ymax)
+crs         : +proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>sg_sp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>class       : SpatialPolygons 
+features    : 323 
+extent      : 2667.538, 56396.44, 15748.72, 50256.33  (xmin, xmax, ymin, ymax)
+crs         : +proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs </code></pre>
+</div>
+</div>
+<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>It appears that the main difference that can be observed is that a sp object does not include a dataframe of data (such as name and other aspatial data). It is entirely made up of geospatial data.</p>
+</div>
+</div>
+</section>
+<section id="converting-the-generic-sp-format-into-spatstats-ppp-format" class="level2">
+<h2 class="anchored" data-anchor-id="converting-the-generic-sp-format-into-spatstats-ppp-format">Converting the generic sp format into spatstat’s ppp format</h2>
+<p>Next, we use the <em>as.ppp()</em> function to convert the spatial data into <strong>spatstat’s ppp object</strong>. (Finally!)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>childcare_ppp <span class="ot">&lt;-</span> <span class="fu">as</span>(childcare_sp, <span class="st">"ppp"</span>)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>childcare_ppp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
