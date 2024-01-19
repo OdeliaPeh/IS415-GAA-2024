@@ -124,5 +124,12 @@
     "title": "IS415-GAA-2024",
     "section": "",
     "text": "This is the course website of IS415 I study this term. You will find my course work on this website."
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html",
+    "href": "Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html",
+    "title": "Hands-on Exercise 3: Spatial Point Patterns Analysis Methods",
+    "section": "",
+    "text": "Spatial Point Pattern Analysis is the evaluation of the pattern or distribution, of a set of points on a surface. Using appropriate functions of spatstat, we can discover the spatial point processes of childecare centres in Singapore.\nThe specific questions we would like to answer in this exercise are as follows:\n\nare the childcare centres in Singapore randomly distributed throughout the country?\nif the answer is not, then the next logical question is where are the locations with higher concentration of childcare centres?\n\n\n\nThe packages that are used in this hands on exercise are:\n\nsf for handling geospatial data\nspatstat which will be used to perform 1st and 2nd order spatial point pattern analysis\nraster which reads, writes, manipulates, analyses and model of gridded spatial data (i.e. raster). In this hands-on exercise, it will be used to convert image output generate by spatstat into raster format.\n\n\n\nmaptools provides a set of tools for manipulating geographic data. In this hands-on exercise, we mainly use it to convert Spatial objects into ppp format of spatstat.\n\n\n\ntmap which provides functions for plotting cartographic quality static point patterns maps or interactive maps by using leaflet API\n\nWe use the following to install and load the packages in Rstudio:\n\npacman::p_load(maptools, sf, raster, spatstat, tmap)\n\n\n\n\nIn this exercise, three data sets will be used. They are:\n\nCHILDCARE, from data.gov.sg in the geojson format.\nMP14_SUBZONE_WEB_PL, from data.gov.sg in the ESRI shapefile format\nCostalOutline, a polygon feature data showing the national boundary of Singapore. For this one, we are encouraged to use the appropriate sf functions to derive this dataset"
   }
 ]

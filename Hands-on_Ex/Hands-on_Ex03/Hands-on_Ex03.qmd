@@ -5,3 +5,49 @@ execute:
   warning: false
 date: "`r Sys.Date()`"
 ---
+
+# Overview
+
+Spatial Point Pattern Analysis is the evaluation of the pattern or distribution, of a set of points on a surface. Using appropriate functions of **spatstat**, we can discover the spatial point processes of childecare centres in Singapore.
+
+The specific questions we would like to answer in this exercise are as follows:
+
+-   are the childcare centres in Singapore randomly distributed throughout the country?
+
+-   if the answer is not, then the next logical question is where are the locations with higher concentration of childcare centres?
+
+## Installing and loading R packages
+
+The packages that are used in this hands on exercise are:
+
+-   [**sf**](https://cran.r-project.org/web/packages/sf/) for handling geospatial data
+
+-   [**spatstat**](https://cran.r-project.org/web/packages/spatstat/) which will be used to perform 1st and 2nd order spatial point pattern analysis
+
+-   [**raster**](https://cran.r-project.org/web/packages/raster/) which reads, writes, manipulates, analyses and model of gridded spatial data (i.e. raster). In this hands-on exercise, it will be used to convert image output generate by **spatstat** into raster format.
+
+```{=html}
+<!-- -->
+```
+-   [**maptools**](https://cran.r-project.org/web/packages/maptools/) provides a set of tools for manipulating geographic data. In this hands-on exercise, we mainly use it to convert *Spatial* objects into *ppp* format of **spatstat**.
+
+```{=html}
+<!-- -->
+```
+-   [**tmap**](https://cran.r-project.org/web/packages/tmap/) which provides functions for plotting cartographic quality static point patterns maps or interactive maps by using [leaflet](https://leafletjs.com/) API
+
+We use the following to install and load the packages in Rstudio:
+
+```{r}
+pacman::p_load(maptools, sf, raster, spatstat, tmap)
+```
+
+## Datasets used
+
+In this exercise, three data sets will be used. They are:
+
+-   `CHILDCARE`, from data.gov.sg in the geojson format.
+
+-   `MP14_SUBZONE_WEB_PL`, from data.gov.sg in the ESRI shapefile format
+
+-   `CostalOutline`, a polygon feature data showing the national boundary of Singapore. For this one, we are encouraged to use the appropriate **sf** functions to derive this dataset
