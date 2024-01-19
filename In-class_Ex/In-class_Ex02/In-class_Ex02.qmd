@@ -46,8 +46,11 @@ For this exercise, we are using some Grab data that Prof Kam has provided for us
 Because the data is a PARAQUET file type, we will be using *read_paraquet* from the `arrow` package. This will be saved as `df`.
 
 ```{r}
-#|eval: false
+#| eval: false
 df <- read_parquet("data/GrabPosisi/part-00000.parquet")
+```
+```{r}
+#| code-fold: true
 df
 ```
 
@@ -71,7 +74,7 @@ df1 <- read_parquet("../../data/GrabPosisi/part-00000.parquet")
 ### Converting the data type of *pingtimestamp* to date-time
 
 ```{r}
-#|eval: false
+#| eval: false
 df$pingtimestamp <- as_datetime(df$pingtimestamp)
 ```
 
@@ -82,7 +85,7 @@ By using the \$, it allows us to call and overwrite the df directly
 Now to save the reformatted df into a new rds file.
 
 ```{r}
-#|eval: false
+#| eval: false
 write_rds(df, "data/rds/part0.rds")
 ```
 
@@ -91,7 +94,7 @@ write_rds(df, "data/rds/part0.rds")
 Now, we extract the trips origin locations, derive 3 new columns for weekday, starting hour and day of month and name the output tibble data.frame *origin_df*
 
 ```{r}
-#|eval: false
+#| eval: false
 origin_df <- df %>%
   group_by(trj_id) %>%
   arrange(pingtimestamp) %>%
@@ -116,7 +119,7 @@ origin_df <- df %>%
 Now, we are extracting the destination locations.
 
 ```{r}
-#|eval: false
+#| eval: false
 dest_df <- df %>%
   group_by(trj_id) %>%
   arrange(pingtimestamp) %>%
@@ -135,7 +138,7 @@ An alternate way to arrange is `arrange(desc(pingtimestamp)) %>% filter(row_numb
 Remember to write it out as rds to save space.
 
 ```{r}
-#|eval: false
+#| eval: false
 write_rds(origin_df, "data/rds/origin_df.rds")
 write_rds(dest_df, "data/rds/dest_df.rds")
 ```
