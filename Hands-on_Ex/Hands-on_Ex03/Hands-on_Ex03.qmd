@@ -16,7 +16,7 @@ The specific questions we would like to answer in this exercise are as follows:
 
 -   if the answer is not, then the next logical question is where are the locations with higher concentration of childcare centres?
 
-## Installing and loading R packages
+# Installing and loading R packages
 
 The packages that are used in this hands on exercise are:
 
@@ -26,23 +26,31 @@ The packages that are used in this hands on exercise are:
 
 -   [**raster**](https://cran.r-project.org/web/packages/raster/) which reads, writes, manipulates, analyses and model of gridded spatial data (i.e. raster). In this hands-on exercise, it will be used to convert image output generate by **spatstat** into raster format.
 
-```{=html}
 <!-- -->
-```
+
 -   [**maptools**](https://cran.r-project.org/web/packages/maptools/) provides a set of tools for manipulating geographic data. In this hands-on exercise, we mainly use it to convert *Spatial* objects into *ppp* format of **spatstat**.
 
-```{=html}
 <!-- -->
-```
+
 -   [**tmap**](https://cran.r-project.org/web/packages/tmap/) which provides functions for plotting cartographic quality static point patterns maps or interactive maps by using [leaflet](https://leafletjs.com/) API
 
 We use the following to install and load the packages in Rstudio:
 
 ```{r}
-pacman::p_load(maptools, sf, raster, spatstat, tmap)
+pacman::p_load(sf, raster, spatstat, tmap)
 ```
 
-## Datasets used
+::: callout-important
+## maptools issue
+
+maptools has been removed from the CRAN repository in 2023. Instead, use the following code below (credit to an anonymous classmate for the code)
+:::
+
+```{r}
+install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
+```
+
+# Datasets used
 
 In this exercise, three data sets will be used. They are:
 
@@ -50,4 +58,105 @@ In this exercise, three data sets will be used. They are:
 
 -   `MP14_SUBZONE_WEB_PL`, from data.gov.sg in the ESRI shapefile format
 
--   `CostalOutline`, a polygon feature data showing the national boundary of Singapore. For this one, we are encouraged to use the appropriate **sf** functions to derive this dataset
+-   `CostalOutline`, a polygon feature data showing the national boundary of Singapore. For this one, we are encouraged to use the appropriate **sf** functions to derive this dataset.
+
+# Importing the data into R
+
+We will use *st_read* to import the geospatial data into R.
+
+```{r}
+mpsz_sf <- st_read(dsn = "data/Geospatial/", 
+                layer = "MP14_SUBZONE_WEB_PL")
+```
+
+```{r}
+childcare_sf <- st_read("data/Geospatial/ChildCareServices.geojson") %>%
+  st_transform(crs = 3414)
+```
+
+::: callout-caution
+## CRS
+
+The print tells us that `childcare_sf` is in the wrong CRS. However, that is because the print is only showing what the raw data is. To see the actual CRS after transformation, we will need to take another look at it. As seen from the code chunk below, `childcare_sf` has been correctly transformed to the projected SVY21, EPSG 3414.
+:::
+
+```{r}
+st_crs(childcare_sf)
+```
+
+## Assigning the correct EPSG code
+
+Now, we need to check `mpsz_sf` to ensure that it is using the correct EPSG code.
+
+```{r}
+st_crs(mpsz_sf)
+```
+
+As can be seen, despite being projected in SVY21, the EPSG code is incorrect. We can fix this using *st_transform*.
+
+```{r}
+mpsz3414_sf <- st_transform(mpsz_sf, 3414)
+```
+
+Now we can check the CRS again. This time, it should be shown as 3414.
+
+```{r}
+st_crs(mpsz3414_sf)
+```
+
+## DIY: Creating CoastalOutline
+
+We need to derive the `CoastalOutline` from `mpsz_3414`. Using examples found in the documents of **sf**, I have come up with the following steps:
+
+First, we need to check the type of data we have.
+
+```{r}
+st_geometry(mpsz3414_sf)
+```
+
+From the above, we can see that `mpsz3414_sf` is a geometry set. In order to use get a clean coastal outline for Singapore, we will need to convert these into simple geometric features using *st_as_sf*. This is because otherwise, when we use *st_union*, the subzone boundaries will still be present as shown below.
+
+```{r}
+CoastalOutline1 <- st_combine(mpsz3414_sf)
+plot(st_union(CoastalOutline1))
+```
+
+Instead, we should first use *st_as_sf* to transform the data into a simple feature collection.
+
+```{r}
+CoastalOutline <- st_as_sf(mpsz3414_sf)
+CoastalOutline
+```
+
+Now, we should be able to use *st_union* in conjunction with plot to see a Singapore as just the Coastal Outlines!
+
+```{r}
+plot(st_union(CoastalOutline))
+```
+
+::: callout-note
+## Main lessons from CoastalOutline
+
+-   `mpsz3414_sf` does not have a simple features geometry column (from an error message while attempting to use *st_read(system.file()*), which prevents reading the shp file directly
+
+-   To transform a geometry set into a simple feature set, we use *st_as_sf*
+
+-   *st_union* is using while plotting to reveal the CoastalOutline
+:::
+
+## Checking the data
+
+It is important that we ensure that the data is accurate. To do that here, since all of our data is geospatial in nature, we can simply plot a map.
+
+::: callout-tip
+Because `childcare_sf` is a collection of point data, we use *tm_dots* instead of *tm_polygons.*
+:::
+
+```{r}
+tm_shape(CoastalOutline) + 
+  tm_polygons() + 
+  tm_shape(mpsz3414_sf) + 
+  tm_polygons() + 
+  tm_shape(childcare_sf) + 
+  tm_dots()
+```
