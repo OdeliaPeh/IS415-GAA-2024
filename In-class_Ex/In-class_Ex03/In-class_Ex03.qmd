@@ -5,3 +5,105 @@ execute:
   warning: false
 date: "`r Sys.Date()`"
 ---
+
+# Hands on exercise revision
+
+For the first half of this lesson, we are doing a revision of the hands-on exercise (partly due to a slight topic change).
+
+Always start with package installation!
+
+```{r}
+pacman::p_load(sf, raster, spatstat, tmap, maptools, tidyverse)
+```
+
+## Importing the data required
+
+```{r}
+mpsz_sf <- st_read(dsn = "data/Geospatial/", 
+                layer = "MP14_SUBZONE_WEB_PL")
+
+mpsz3414_sf <- st_transform(mpsz_sf, 3414)
+
+childcare_sf <- st_read("data/Geospatial/ChildCareServices.geojson") %>%
+  st_transform(crs = 3414)
+```
+
+## Creating CoastalOutline
+
+::: callout-note
+st_union can be used to dissolve boundaries, and can be given a specific feature to dissolve by as well. We do not use st_combine because it does not resolve boundaries (will return only one polygon and change the data table)
+:::
+
+```{r}
+sg_sf <- mpsz3414_sf %>% st_union()
+
+plot(sg_sf)
+```
+
+Why is the map so small? This is because we did not define the layer boundary. We could read the layer boundary from the original `mpsz` to find the boundary and limit the size to just Singapore. The argument is called *bb_box*.
+
+## Data wrangling
+
+#### ppp objects: sf method
+
+There is no need to really go through ALL three steps. Instead, we can directly use the below code chunk.
+
+```{r}
+childcare_ppp <- as.ppp(childcare_sf)
+```
+
+Note how it is a LIST of attributes. It drops a lot of information like the projection. Remember that all of the data MUST be projected into a **projected coordinate system**. Since it is treated as numbers, it does not know the coordinates either, so a projected coordinate system is important.
+
+```{r}
+summary(childcare_ppp)
+```
+
+## Detect duplicate data
+
+```{r}
+any(duplicated(childcare_ppp))
+```
+
+::: callout-note
+It is especially important to check for duplicates if we are working with postal code in geospatial data.
+:::
+
+Jitter can be used to slightly separate the datapoints so that it can be seen as MULTIPLE points in the same spot.
+
+## Creating owin object
+
+In any study, we will require a study area. If a study area is not defined and confined, the data points will assume it can occur within blank spaces (because technically it will spread out at random).
+
+#### sf version (single step)
+
+Note that it has to be an sf layer, not an sp layer.
+
+```{r}
+sg_owin <- as.owin(sg_sf)
+plot(sg_owin)
+```
+
+```{r}
+summary(sg_owin)
+```
+
+## Extract target planning areas
+
+There is a part where we extract specific subsets of area. In the hands on exercise we used the following to cut it out:
+
+```{r}
+#| eval: false
+tm = mpsz[mpsz@data$PLN_AREA_N == "TAMPINES",]
+
+```
+
+But in the sf form, we should do it the following way using *filter()*:
+
+```{r}
+tm <- mpsz3414_sf %>%
+  filter(PLN_AREA_N == "TAMPINES")
+```
+
+```{r}
+plot(tm, main="Tampines")
+```

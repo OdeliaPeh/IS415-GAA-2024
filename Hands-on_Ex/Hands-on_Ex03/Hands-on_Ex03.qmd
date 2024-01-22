@@ -71,6 +71,8 @@ childcare_sf <- st_read("data/Geospatial/ChildCareServices.geojson") %>%
   st_transform(crs = 3414)
 ```
 
+Note that the geojson data type sticks everything together in one column, and hence will require tidyverse functions to separate the data into proper columns
+
 ::: callout-caution
 ## CRS
 
@@ -99,6 +101,10 @@ Now we can check the CRS again. This time, it should be shown as 3414.
 
 ```{r}
 st_crs(mpsz3414_sf)
+```
+
+```{r}
+plot(mpsz3414_sf)
 ```
 
 ## DIY: Creating CoastalOutline
