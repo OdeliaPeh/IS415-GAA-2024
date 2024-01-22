@@ -1,0 +1,134 @@
+---
+title: "Hands-on Exercise 3B: Network Constrained Spatial Point Patterns Analysis"
+
+execute:
+  warning: false
+date: "`r Sys.Date()`"
+---
+
+This section is done in class due to updates and changes to the topics. Note that at current, it is not complete, but rather a quick run-through of Network KDE. This will be updated over the next week.
+
+# Downloading packages
+
+```{r}
+pacman::p_load(sf, spNetwork, tmap, classInt, viridis, tidyverse)
+```
+
+-   viridis - used for colorways to colour the map
+
+-   spNetwork - used for the network
+
+::: callout-note
+rgdal is depreciated hence why it is not used here
+:::
+
+# Importing the data
+
+The data is downloaded through elearn (thank you prof!)
+
+```{r}
+network <- st_read(dsn="data/Geospatial1",
+                   layer = "Punggol_St")
+
+childcare <- st_read(dsn="data/Geospatial1",
+                   layer = "Punggol_CC")
+```
+
+Note how `network` is a line string instead of a point or a polygon. Both layers can also be seen to be in SVY21, so in this case there is no need to re-project.
+
+# Visualising the data
+
+We can visualise the data together via the following code:
+
+```{r}
+tmap_mode('view')
+tm_shape(childcare)+
+  tm_dots() +
+  tm_shape(network)+
+  tm_lines()
+
+tmap_mode('plot')
+```
+
+::: callout-important
+The order is important! It will plot each layer one overlaid over the other, and may cut off points or polygons.
+:::
+
+We can also view the individual network itself
+
+```{r}
+plot(network)
+plot(childcare,add=T,col='red',pch = 19)
+```
+
+## Preparing lixels object
+
+We first need to segment the lines in the network
+
+```{r}
+lixels <- lixelize_lines(network,
+                         750,
+                         mindist = 375)
+```
+
+::: callout-note
+Why 750m? Based off a study by NUS that the maximum walking distance people are willing to walk is 750m. Since we use 750m, the middle distance is 375m (half of the bandwidth).
+:::
+
+## Generating line centre points
+
+This is to ensure that the centrepoints of the lines are consistent
+
+```{r}
+samples <- lines_center(lixels)
+```
+
+## Performing NetKDE
+
+Now that we have both, we can use this to calculate the density
+
+```{r}
+densities <- nkde(network, 
+                  events = childcare,
+                  w = rep(1,nrow(childcare)),
+                  samples = samples, #used to segment the road with the centre point
+                  kernel_name = "quartic", #kernel method
+                  bw = 300, # bandwidth
+                  div= "bw", 
+                  method = "simple", 
+                  digits = 1, 
+                  tol = 1,
+                  grid_shape = c(1,1), 
+                  max_depth = 8,
+                  agg = 5, #we aggregate events within a 5m radius (faster calculation)
+                  sparse = TRUE,
+                  verbose = FALSE)
+```
+
+## Visualising NetKDE
+
+Before we can visualise the NetKDE values, code chunk below will be used to insert the computed density values (i.e. densities) into samples and lixels objects as density field.
+
+```{r}
+samples$density <- densities
+lixels$density <- densities
+```
+
+Next, because svy21 is in meters, we will need to convert the numbers to kilometers to avoid small numbers.
+
+```{r}
+# rescaling to help the mapping
+samples$density <- samples$density*1000
+lixels$density <- lixels$density*1000
+```
+
+Now, we can visualise the network.
+
+```{r}
+tmap_mode('view')
+tm_shape(lixels)+
+  tm_lines(col="density")+
+tm_shape(childcare)+
+  tm_dots()
+tmap_mode('plot')
+```
