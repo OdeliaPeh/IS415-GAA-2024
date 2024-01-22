@@ -33,10 +33,11 @@ The packages that are used in this hands on exercise are:
 ::: callout-important
 ## maptools issue
 
-maptools has been removed from the CRAN repository in 2023. Instead, use the following code below (credit to an anonymous classmate for the code) to add in into a place where pacman::p_load will work
+maptools has been removed from the CRAN repository in 2023. Instead, use the following code below (credit to an anonymous classmate for the code) to add in into a place where pacman::p_load will work. There is no need to re-rerun this installation after the first time.
 :::
 
 ```{r}
+#| eval: false
 install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
 ```
 
