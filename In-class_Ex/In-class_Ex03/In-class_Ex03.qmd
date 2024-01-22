@@ -10,10 +10,15 @@ date: "`r Sys.Date()`"
 
 For the first half of this lesson, we are doing a revision of the hands-on exercise (partly due to a slight topic change).
 
-Always start with package installation!
+Always start with package installation! ALWAYS include tidyverse
 
 ```{r}
-pacman::p_load(sf, raster, spatstat, tmap, maptools, tidyverse)
+#| eval: false
+install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
+```
+
+```{r}
+pacman::p_load(sf, raster, spatstat, tmap, maptools, tidyverse, sp, rgdal, spNetwork)
 ```
 
 ## Importing the data required
@@ -102,8 +107,16 @@ But in the sf form, we should do it the following way using *filter()*:
 ```{r}
 tm <- mpsz3414_sf %>%
   filter(PLN_AREA_N == "TAMPINES")
+pg <- mpsz3414_sf %>%
+  filter(PLN_AREA_N == "PUNGGOL")
+ck <- mpsz3414_sf %>%
+  filter(PLN_AREA_N == "CHOA CHU KANG")
+jw <- mpsz3414_sf %>%
+  filter(PLN_AREA_N == "JURONG WEST")
 ```
 
 ```{r}
 plot(tm, main="Tampines")
 ```
+
+The rest of in class exercise 3 can be found in Hands on exercise 3.
