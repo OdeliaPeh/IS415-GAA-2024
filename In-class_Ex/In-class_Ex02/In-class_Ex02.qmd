@@ -49,6 +49,7 @@ Because the data is a PARAQUET file type, we will be using *read_paraquet* from 
 #| eval: false
 df <- read_parquet("data/GrabPosisi/part-00000.parquet")
 ```
+
 ```{r}
 #| code-fold: true
 df
