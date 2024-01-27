@@ -1,0 +1,7 @@
+---
+title: "Hands-on Exercise 4: Spatial Weights and Applications"
+
+execute:
+  warning: false
+date: "`r Sys.Date()`"
+---
