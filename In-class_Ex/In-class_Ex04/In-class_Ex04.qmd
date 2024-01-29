@@ -62,4 +62,4 @@ The GDPPC_LM is the same as the application of spatial lag (specifically based o
 
 # Homework
 
-Plot the following maps: Mean, Standard Deviation, Variance, Skew and Cross-Validation
+Plot the following maps: Mean, Standard Deviation, Variance, Skew and Coefficient of Variance
