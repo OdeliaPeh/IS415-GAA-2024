@@ -1,7 +1,396 @@
 ---
-title: "Take Home Exercise 1"
+title: "Take Home Exercise 1: Application of Spatial Point Patterns Analysis"
 
 execute:
   warning: false
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    toc_float:
+      collapsed: false
 date: "`r Sys.Date()`"
 ---
+
+# Project overview
+
+In this study, we apply appropriate spatial point patterns analysis methods to discover the geographical and spatio-temporal distribution of Grab hailing services locations in Singapore and describe the spatial patterns revealed by kernel density maps.
+
+# Installing R packages
+
+For this exercise, I will be using the following packages:
+
+-   sf
+
+-   tidyverse
+
+-   tmap
+
+-   spatstat
+
+-   maptools
+
+-   raster
+
+-   arrow
+
+-   lubridate
+
+-   readr (for saving transformed data sets as rds)
+
+```{r}
+pacman::p_load(sf, tidyverse, tmap, spatstat, maptools, raster, arrow, lubridate, readr)
+```
+
+# Importing and transforming data
+
+For this section, after all data sets have been transformed, they will be saved in the `rds` format for easier use in the rest of the exercise.
+
+## Aspatial data
+
+### Grab Posisi data
+
+First, the data needs to be imported into RStudio. In this exercise, we will need to import all of the data in order to observe the temporal distribution.
+
+```{r}
+#| eval: false
+df <- read_parquet(file="data/aspatial/GrabPosisi/part-00000.parquet")
+df1 <- read_parquet(file="data/aspatial/GrabPosisi/part-00001.parquet")
+df2 <- read_parquet(file="data/aspatial/GrabPosisi/part-00002.parquet")
+df3 <- read_parquet(file="data/aspatial/GrabPosisi/part-00003.parquet")
+df4 <- read_parquet(file="data/aspatial/GrabPosisi/part-00004.parquet")
+df5 <- read_parquet(file="data/aspatial/GrabPosisi/part-00005.parquet")
+df6 <- read_parquet(file="data/aspatial/GrabPosisi/part-00006.parquet")
+df7 <- read_parquet(file="data/aspatial/GrabPosisi/part-00007.parquet")
+df8 <- read_parquet(file="data/aspatial/GrabPosisi/part-00008.parquet")
+df9 <- read_parquet(file="data/aspatial/GrabPosisi/part-00009.parquet")
+```
+
+#### Data handling: Converting the data type of *pingtimestamp* to date-time
+
+Grab marks the date-time of each data point as a pingtimestamp. As a result, I will need to transform the data type to date-time using lubridate.
+
+```{r}
+#| eval: false
+df$pingtimestamp <- as_datetime(df$pingtimestamp)
+df1$pingtimestamp <- as_datetime(df1$pingtimestamp)
+df2$pingtimestamp <- as_datetime(df2$pingtimestamp)
+df3$pingtimestamp <- as_datetime(df3$pingtimestamp)
+df4$pingtimestamp <- as_datetime(df4$pingtimestamp)
+df5$pingtimestamp <- as_datetime(df5$pingtimestamp)
+df6$pingtimestamp <- as_datetime(df6$pingtimestamp)
+df7$pingtimestamp <- as_datetime(df7$pingtimestamp)
+df8$pingtimestamp <- as_datetime(df8$pingtimestamp)
+df9$pingtimestamp <- as_datetime(df9$pingtimestamp)
+```
+
+#### Data handling: Extracting trip origins
+
+Now, we extract the trip origin locations and derive 3 new columns for weekday, starting hour and day of month into a new data frame. The origin locations are derived by grouping trips according to their `trj_id`, arranging by the date-time and filtering for the first item in each group.
+
+```{r}
+#| code-fold: true
+#| eval: false
+
+
+origin_df <- df %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+origin_df1 <- df1 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+origin_df2 <- df2 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+origin_df3 <- df3 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+origin_df4 <- df4 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+origin_df5 <- df5 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+origin_df6 <- df6 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+origin_df7 <- df7 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+origin_df8 <- df8 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+origin_df9 <- df9 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+```
+
+#### Data handling: Extracting destinations
+
+To extract trip destinations, we use a similar code as above except we filter to take the nth item out of n items in a group.
+
+```{r}
+#| code-fold: true
+#| eval: false
+
+
+dest_df <- df %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==n()) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+dest_df1 <- df1 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==n()) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+dest_df2 <- df2 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==n()) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+dest_df3 <- df3 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==n()) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+dest_df4 <- df4 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==n()) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+dest_df5 <- df5 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==n()) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+dest_df6 <- df6 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==n()) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+dest_df7 <- df7 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==n()) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+dest_df8 <- df8 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==n()) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+dest_df9 <- df9 %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==n()) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label = TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+```
+
+#### Combining into one data frame
+
+For easier handling, I am going to combine the data frames into one `origin` data frame and one `destination` data frame.
+
+```{r}
+#| eval: false
+
+origin_all <- origin_df %>%
+  full_join(origin_df1) %>%
+  full_join(origin_df2) %>%
+  full_join(origin_df3) %>%
+  full_join(origin_df4) %>%
+  full_join(origin_df5) %>%
+  full_join(origin_df6) %>%
+  full_join(origin_df7) %>%
+  full_join(origin_df8) %>%
+  full_join(origin_df9)
+
+```
+
+```{r}
+#| eval: false
+
+dest_all <- dest_df %>%
+  full_join(dest_df1) %>%
+  full_join(dest_df2) %>%
+  full_join(dest_df3) %>%
+  full_join(dest_df4) %>%
+  full_join(dest_df5) %>%
+  full_join(dest_df6) %>%
+  full_join(dest_df7) %>%
+  full_join(dest_df8) %>%
+  full_join(dest_df9)
+```
+
+#### Writing data as rds
+
+With the data transformation done, we can now write it out as an rds for future use.
+
+```{r}
+#| eval: false
+
+write_rds(origin_all, "data/rds/grab_origins.rds")
+write_rds(dest_all, "data/rds/grab_dest.rds")
+```
+
+## Geospatial data
+
+### Singapore Coastal outline (excluding islands)
+
+This layer is derived from the Master Plan 2019 Subzone Boundary (No Sea) from data.gov. First, it needs to be imported into rstudio using *st_read()*
+
+```{r}
+mpsz_sf <- st_read(dsn = "data/geospatial", 
+                layer = "MPSZ-2019")
+```
+
+From the summary, it can be seen that the layer is projected to WGS84. To continue, there is the need to reproject the polygons to the correct CRS SVY21.
+
+```{r}
+mpsz3414_sf <- st_transform(mpsz_sf, 3414)
+```
+
+Now, we can plot the map and view the data.
+
+```{r}
+plot(mpsz3414_sf["SUBZONE_N"])
+```
+
+There are some islands in the map that lack bridges for Grab drivers to reach, such as Coney Island. However, there are other relevant islands such as Sentosa that need to be kept.
+
+From research, Grab drivers can be observed to be able to enter [Sentosa](https://www.grab.com/sg/sentosaentry/) and [Jurong Island](https://www.firstlane.com.sg/grab-jurong-island-pass/) to pick up and drop off passengers at the current moment. Hence, the islands that need to be excluded from the map are:
+
+-   Coney Island
+
+-   Southern Group
+
+-   North-eastern islands
+
+-   Sudong
+
+-   Semakau
+
+-   [Pulau Ubin](https://wansubinjournal.blogspot.com/p/ubin-map.html) (Grab drivers can only pick up and drop off passengers at the ferry terminal)
+
+## Final import of data
+```{r}
+origin_all_df <- read_rds("data/rds/grab_origins.rds")
+dest_all_df <- read_rds("data/rds/grab_dest.rds")
+```
