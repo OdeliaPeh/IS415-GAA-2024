@@ -147,7 +147,7 @@ str(wm_q)
 The output might cut across several pages. Save the trees if you are going to print out the report.
 :::
 
-### Creating (ROOK) contiguity based neighbours
+### Computing (ROOK) contiguity based neighbours
 
 The code chunk below is used to compute Rook contiguity weight matrix (also known as the default chosen when queen=false).
 

@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2024-01-27">
+<meta name="dcterms.date" content="2024-01-29">
 
 <title>IS415-GAA-2024 - Hands-on Exercise 4: Spatial Weights and Applications</title>
 <style>
@@ -159,11 +159,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
  <span class="dropdown-text">Hands-on Exercise 3</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../../In-class_Ex/Hands-on_Ex03/Hands-on_Ex03_NKDE.html">
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03_NKDE.html">
  <span class="dropdown-text">Hands-on Exercise 3B</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../../In-class_Ex/Hands-on_Ex04/Hands-on_Ex04.html">
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html">
  <span class="dropdown-text">Hands-on Exercise 4</span></a>
   </li>  
     </ul>
@@ -182,6 +182,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
         <li>
     <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex03/In-class_Ex03.html">
  <span class="dropdown-text">In-class Exercise 3</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex04/In-class_Ex04.html">
+ <span class="dropdown-text">In-class Exercise 4</span></a>
   </li>  
     </ul>
   </li>
@@ -230,7 +234,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#computing-contiguity-spatial-weights" id="toc-computing-contiguity-spatial-weights" class="nav-link" data-scroll-target="#computing-contiguity-spatial-weights">Computing Contiguity Spatial Weights</a>
   <ul class="collapse">
   <li><a href="#computing-queen-contiguity-based-neighbours" id="toc-computing-queen-contiguity-based-neighbours" class="nav-link" data-scroll-target="#computing-queen-contiguity-based-neighbours">Computing (QUEEN) contiguity based neighbours</a></li>
-  <li><a href="#creating-rook-contiguity-based-neighbours" id="toc-creating-rook-contiguity-based-neighbours" class="nav-link" data-scroll-target="#creating-rook-contiguity-based-neighbours">Creating (ROOK) contiguity based neighbours</a></li>
+  <li><a href="#computing-rook-contiguity-based-neighbours" id="toc-computing-rook-contiguity-based-neighbours" class="nav-link" data-scroll-target="#computing-rook-contiguity-based-neighbours">Computing (ROOK) contiguity based neighbours</a></li>
   <li><a href="#visualising-contiguity-weights" id="toc-visualising-contiguity-weights" class="nav-link" data-scroll-target="#visualising-contiguity-weights">Visualising contiguity weights</a></li>
   <li><a href="#combined-plot-maps" id="toc-combined-plot-maps" class="nav-link" data-scroll-target="#combined-plot-maps">Combined plot maps</a></li>
   </ul></li>
@@ -274,7 +278,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 27, 2024</p>
+      <p class="date">January 29, 2024</p>
     </div>
   </div>
     
@@ -464,8 +468,8 @@ Warning
 </div>
 </div>
 </section>
-<section id="creating-rook-contiguity-based-neighbours" class="level3">
-<h3 class="anchored" data-anchor-id="creating-rook-contiguity-based-neighbours">Creating (ROOK) contiguity based neighbours</h3>
+<section id="computing-rook-contiguity-based-neighbours" class="level3">
+<h3 class="anchored" data-anchor-id="computing-rook-contiguity-based-neighbours">Computing (ROOK) contiguity based neighbours</h3>
 <p>The code chunk below is used to compute Rook contiguity weight matrix (also known as the default chosen when queen=false).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>wm_r <span class="ot">&lt;-</span> <span class="fu">poly2nb</span>(hunan, <span class="at">queen=</span><span class="cn">FALSE</span>)</span>

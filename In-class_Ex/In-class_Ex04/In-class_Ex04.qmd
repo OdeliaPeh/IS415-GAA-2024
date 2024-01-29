@@ -1,7 +1,65 @@
 ---
-title: "In-class Exercise 4"
+title: "In-class Exercise 4: GWmodel"
 
 execute:
   warning: false
 date: "`r Sys.Date()`"
 ---
+
+This in class exercise will introduce us to a ready made package that allows us to apply the distance matrix easily: GWmodel
+
+```{r}
+pacman::p_load(sf, spdep, tmap, tidyverse, knitr, GWmodel)
+```
+
+# Importing data
+
+```{r}
+hunan <- st_read(dsn = "../../Hands-on_Ex/Hands-on_Ex04/data/geospatial", 
+                 layer = "Hunan")
+```
+
+```{r}
+hunan2012 <- read_csv("../../Hands-on_Ex/Hands-on_Ex04/data/aspatial/Hunan_2012.csv")
+```
+
+```{r}
+hunan <- left_join(hunan,hunan2012)%>%
+  select(1:4, 7, 15)
+```
+
+# Working with GWmodel
+
+::: callout-caution
+This package is relatively old and hence **CANNOT** accept sf. The data has to be in SpatialDataFrame (AKA sp object class)
+:::
+
+```{r}
+hunan_sp <- hunan %>%
+  as_Spatial()
+```
+
+Note that all the geometric data is stored in a table/list, and the projection is stored in a separate list.
+
+The data MUST be a SpatialObject. There can be many variables in GWmodels computed at the same time, and note the use of "" to indicate variables.
+
+We are using distance weight matrix, which requires the definition of a bandwidth (bw, adaptive). Note that for bw, it is indicating the number of neighbours.
+
+```{r}
+gwstat <- gwss(data = hunan_sp,
+               vars = "GDPPC",
+               bw = 6,
+               kernel = "bisquare",
+               adaptive = TRUE,
+               longlat = T)
+```
+
+::: callout-note
+gwstat is a massive object class that tells us the parameters we have used as well as the results of the calculation in the SDF dataframe.
+:::
+
+The GDPPC_LM is the same as the application of spatial lag (specifically based on the distance matrix)
+
+# Homework
+
+Plot the following maps: Mean, Standard Deviation, Variance, Skew and Cross-Validation

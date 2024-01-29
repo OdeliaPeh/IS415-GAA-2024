@@ -1,0 +1,144 @@
+---
+title: "In-class Exercise 4"
+
+execute:
+  warning: false
+date: "`r Sys.Date()`"
+---
+
+Start of in-class 4
+
+```{r}
+pacman::p_load(sf, spdep, tmap, tidyverse, knitr)
+```
+
+# Data
+
+```{r}
+hunan <- st_read(dsn = "../../Hands-on_Ex/Hands-on_Ex04/data/geospatial", 
+                 layer = "Hunan")
+```
+
+::: callout-note
+Note that the `hunan` dataset is in the geographic coordinate system, and not projected coordinates
+:::
+
+```{r}
+hunan2012 <- read_csv("../../Hands-on_Ex/Hands-on_Ex04/data/aspatial/Hunan_2012.csv")
+```
+
+```{r}
+hunan <- left_join(hunan,hunan2012)%>%
+  select(1:4, 7, 15)
+```
+
+::: callout-note
+-   There is only a need to be explicit about which fields are unique identifiers to join if the fields have different names.
+
+-   There is a need to select which columns to join because otherwise it will handover everything from `hunan2012`
+
+-   In the code above, the pipe allows us to explicitly select the columns that we want (it will join first BEFORE you can select out the columns we want)
+:::
+
+## Visualising
+
+```{r}
+basemap <- tm_shape(hunan) +
+  tm_polygons() +
+  tm_text("NAME_3", size=0.5)
+
+gdppc <- qtm(hunan, "GDPPC")
+tmap_arrange(basemap, gdppc, asp=1, ncol=2)
+```
+
+# Computing spatial weights
+
+## Queen based neighbours
+
+```{r}
+wm_q <- poly2nb(hunan, queen=TRUE)
+summary(wm_q)
+```
+
+::: callout-note
+The output is just a list of polygons and their neighbours (in numbers), follows the original id numbers
+
+Be aware of the average, in reality they should be absolute integers.
+
+Link number distribution: distribution of geographical areas and the number of neighbours they have
+:::
+
+## Rooks based neighbours
+
+```{r}
+wm_r <- poly2nb(hunan, queen=FALSE)
+summary(wm_r)
+```
+
+# Computing distance based neighbours
+
+For coordinates, we are using the lat-long values to calculate the coordinates
+
+```{r}
+longitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[1]])
+latitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[2]])
+coords <- cbind(longitude, latitude)
+```
+
+::: callout-note
+Note that cbind just combines everything, and this works because latitude and longitude draw from the same table
+
+DO NOT SORT it will change the sequence
+:::
+
+Use a function to find out the neighbours WITHOUT explicitly telling which are the neighbours. Next, determine a cut off value.
+
+```{r}
+#coords <- coordinates(hunan)
+k1 <- knn2nb(knearneigh(coords))
+k1dists <- unlist(nbdists(k1, coords, longlat = TRUE))
+summary(k1dists)
+```
+
+::: callout-note
+longlat = TRUE will ensure that the function will auto-convert everything into great distance projection instead (measured in kilometers)
+:::
+
+Round the maximum UP for the fixed distance weight matrix (and rm to change to projected.
+
+## Fixed distance weight matrix
+
+longlat= TRUE is VERY IMPORTANT, NEEDED to find neighoburs at all.
+
+```{r}
+wm_d62 <- dnearneigh(coords, 0, 62, longlat = TRUE)
+wm_d62
+```
+
+# Using adaptive matrix
+
+Use k-neighbours an define the number of neighbours. The distance is how for to find the exact number of neighburs.
+
+```{r}
+knn6 <- knn2nb(knearneigh(coords, k=6))
+knn6
+```
+
+```{r}
+str(knn6)
+```
+
+```{r}
+plot(hunan$geometry, border="lightgrey")
+plot(knn6, coords, pch = 19, cex = 0.6, add = TRUE, col = "red")
+```
+
+# Spatial lag
+
+## Average
+
+Value = Sum of its neighbours AFTER it has been multiplied by its weight, does NOT include itself.
+
+## Sum
+
+Value = Sum of its neighbours AFTER it has been multiplied by its weight INCLUDING ITSELF
