@@ -357,6 +357,7 @@ write_rds(dest_all, "data/rds/grab_dest.rds")
 This layer is derived from the Master Plan 2019 Subzone Boundary (No Sea) from data.gov. First, it needs to be imported into rstudio using *st_read()*
 
 ```{r}
+#| eval: false
 mpsz_sf <- st_read(dsn = "data/geospatial", 
                 layer = "MPSZ-2019")
 ```
@@ -364,33 +365,73 @@ mpsz_sf <- st_read(dsn = "data/geospatial",
 From the summary, it can be seen that the layer is projected to WGS84. To continue, there is the need to reproject the polygons to the correct CRS SVY21.
 
 ```{r}
+#| eval: false
 mpsz3414_sf <- st_transform(mpsz_sf, 3414)
 ```
 
 Now, we can plot the map and view the data.
 
 ```{r}
+#| eval: false
 plot(mpsz3414_sf["SUBZONE_N"])
 ```
 
 There are some islands in the map that lack bridges for Grab drivers to reach, such as Coney Island. However, there are other relevant islands such as Sentosa that need to be kept.
 
-From research, Grab drivers can be observed to be able to enter [Sentosa](https://www.grab.com/sg/sentosaentry/) and [Jurong Island](https://www.firstlane.com.sg/grab-jurong-island-pass/) to pick up and drop off passengers at the current moment. Hence, the islands that need to be excluded from the map are:
+From research, Grab drivers can be observed to be able to enter [Sentosa](https://www.grab.com/sg/sentosaentry/) and [Jurong Island](https://www.firstlane.com.sg/grab-jurong-island-pass/) to pick up and drop off passengers at the current moment. However, the Jurong Island polygon in `mpsz3414_sf` is combined with another island Bukom. Furthermore, Grab drivers are only allowed onto the island if they have a security pass, resulting in few drivers entering and exiting the island. Therefore, I am choosing to remove Jurong Island and Bukom from the map.
+
+Hence, the islands that need to be excluded from the map are:
 
 -   Coney Island
 
 -   Southern Group
 
--   North-eastern islands
+-   North-Eastern islands (including [Pulau Ubin](https://wansubinjournal.blogspot.com/p/ubin-map.html): Grab drivers can only pick up and drop off passengers at the ferry terminal)
 
 -   Sudong
 
 -   Semakau
 
--   [Pulau Ubin](https://wansubinjournal.blogspot.com/p/ubin-map.html) (Grab drivers can only pick up and drop off passengers at the ferry terminal)
+-   Jurong Island and Bukom
+
+To remove these, I've chosen to filter them out by name. This is because Sentosa and Jurong Island are also labelled as "islands" and would otherwise be caught.
+
+```{r}
+#| eval: false
+main_island <- mpsz3414_sf %>%
+              filter(SUBZONE_N !="CONEY ISLAND") %>%
+              filter(SUBZONE_N != "NORTH-EASTERN ISLANDS") %>%
+              filter(SUBZONE_N != "SOUTHERN GROUP") %>%
+              filter(SUBZONE_N != "SUDONG") %>%
+              filter(SUBZONE_N != "SEMAKAU") %>%
+              filter(SUBZONE_N != "SUDONG") %>%
+              filter(SUBZONE_N != "JURONG ISLAND AND BUKOM")
+
+plot(main_island["SUBZONE_N"])
+```
+
+Now, we can use *st_union* to get the outline of Singapore.
+
+```{r}
+#| eval: false
+main_island_outline <- st_union(main_island)
+
+plot(main_island_outline)
+```
+
+### Writing data as rds
+
+With this, we can now save the data in the rds format.
+
+```{r}
+#| eval: false
+write_rds(main_island_outline, "data/rds/islandOutline.rds")
+```
 
 ## Final import of data
+
 ```{r}
 origin_all_df <- read_rds("data/rds/grab_origins.rds")
 dest_all_df <- read_rds("data/rds/grab_dest.rds")
+CoastalOutline <- read_rds("data/rds/islandOutline.rds")
 ```

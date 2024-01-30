@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2024-01-30">
+<meta name="dcterms.date" content="2024-01-31">
 
 <title>IS415-GAA-2024 - Take Home Exercise 1: Application of Spatial Point Patterns Analysis</title>
 <style>
@@ -232,6 +232,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#geospatial-data" id="toc-geospatial-data" class="nav-link" data-scroll-target="#geospatial-data">Geospatial data</a>
   <ul class="collapse">
   <li><a href="#singapore-coastal-outline-excluding-islands" id="toc-singapore-coastal-outline-excluding-islands" class="nav-link" data-scroll-target="#singapore-coastal-outline-excluding-islands">Singapore Coastal outline (excluding islands)</a></li>
+  <li><a href="#writing-data-as-rds-1" id="toc-writing-data-as-rds-1" class="nav-link" data-scroll-target="#writing-data-as-rds-1">Writing data as rds</a></li>
   </ul></li>
   <li><a href="#final-import-of-data" id="toc-final-import-of-data" class="nav-link" data-scroll-target="#final-import-of-data">Final import of data</a></li>
   </ul></li>
@@ -254,7 +255,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 30, 2024</p>
+      <p class="date">January 31, 2024</p>
     </div>
   </div>
     
@@ -583,45 +584,60 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>mpsz_sf <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>, </span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">layer =</span> <span class="st">"MPSZ-2019"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Reading layer `MPSZ-2019' from data source 
-  `C:\OdeliaPeh\IS415-GAA-2024\Take-home_Ex\Take-home_Ex01\data\geospatial' 
-  using driver `ESRI Shapefile'
-Simple feature collection with 332 features and 6 fields
-Geometry type: MULTIPOLYGON
-Dimension:     XY
-Bounding box:  xmin: 103.6057 ymin: 1.158699 xmax: 104.0885 ymax: 1.470775
-Geodetic CRS:  WGS 84</code></pre>
-</div>
 </div>
 <p>From the summary, it can be seen that the layer is projected to WGS84. To continue, there is the need to reproject the polygons to the correct CRS SVY21.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>mpsz3414_sf <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(mpsz_sf, <span class="dv">3414</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>mpsz3414_sf <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(mpsz_sf, <span class="dv">3414</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Now, we can plot the map and view the data.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mpsz3414_sf[<span class="st">"SUBZONE_N"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
-</div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mpsz3414_sf[<span class="st">"SUBZONE_N"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>There are some islands in the map that lack bridges for Grab drivers to reach, such as Coney Island. However, there are other relevant islands such as Sentosa that need to be kept.</p>
-<p>From research, Grab drivers can be observed to be able to enter <a href="https://www.grab.com/sg/sentosaentry/">Sentosa</a> and <a href="https://www.firstlane.com.sg/grab-jurong-island-pass/">Jurong Island</a> to pick up and drop off passengers at the current moment. Hence, the islands that need to be excluded from the map are:</p>
+<p>From research, Grab drivers can be observed to be able to enter <a href="https://www.grab.com/sg/sentosaentry/">Sentosa</a> and <a href="https://www.firstlane.com.sg/grab-jurong-island-pass/">Jurong Island</a> to pick up and drop off passengers at the current moment. However, the Jurong Island polygon in <code>mpsz3414_sf</code> is combined with another island Bukom. Furthermore, Grab drivers are only allowed onto the island if they have a security pass, resulting in few drivers entering and exiting the island. Therefore, I am choosing to remove Jurong Island and Bukom from the map.</p>
+<p>Hence, the islands that need to be excluded from the map are:</p>
 <ul>
 <li><p>Coney Island</p></li>
 <li><p>Southern Group</p></li>
-<li><p>North-eastern islands</p></li>
+<li><p>North-Eastern islands (including <a href="https://wansubinjournal.blogspot.com/p/ubin-map.html">Pulau Ubin</a>: Grab drivers can only pick up and drop off passengers at the ferry terminal)</p></li>
 <li><p>Sudong</p></li>
 <li><p>Semakau</p></li>
-<li><p><a href="https://wansubinjournal.blogspot.com/p/ubin-map.html">Pulau Ubin</a> (Grab drivers can only pick up and drop off passengers at the ferry terminal)</p></li>
+<li><p>Jurong Island and Bukom</p></li>
 </ul>
+<p>To remove these, I’ve chosen to filter them out by name. This is because Sentosa and Jurong Island are also labelled as “islands” and would otherwise be caught.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>main_island <span class="ot">&lt;-</span> mpsz3414_sf <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span><span class="st">"CONEY ISLAND"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"NORTH-EASTERN ISLANDS"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"SOUTHERN GROUP"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"SUDONG"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"SEMAKAU"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"SUDONG"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"JURONG ISLAND AND BUKOM"</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(main_island[<span class="st">"SUBZONE_N"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now, we can use <em>st_union</em> to get the outline of Singapore.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>main_island_outline <span class="ot">&lt;-</span> <span class="fu">st_union</span>(main_island)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(main_island_outline)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="writing-data-as-rds-1" class="level3">
+<h3 class="anchored" data-anchor-id="writing-data-as-rds-1">Writing data as rds</h3>
+<p>With this, we can now save the data in the rds format.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(main_island_outline, <span class="st">"data/rds/islandOutline.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
 </section>
 <section id="final-import-of-data" class="level2">
 <h2 class="anchored" data-anchor-id="final-import-of-data">Final import of data</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>origin_all_df <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/grab_origins.rds"</span>)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>dest_all_df <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/grab_dest.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>origin_all_df <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/grab_origins.rds"</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>dest_all_df <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/grab_dest.rds"</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>CoastalOutline <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/islandOutline.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
