@@ -357,7 +357,6 @@ write_rds(dest_all, "data/rds/grab_dest.rds")
 This layer is derived from the Master Plan 2019 Subzone Boundary (No Sea) from data.gov. First, it needs to be imported into rstudio using *st_read()*
 
 ```{r}
-#| eval: false
 mpsz_sf <- st_read(dsn = "data/geospatial", 
                 layer = "MPSZ-2019")
 ```
@@ -365,7 +364,6 @@ mpsz_sf <- st_read(dsn = "data/geospatial",
 From the summary, it can be seen that the layer is projected to WGS84. To continue, there is the need to reproject the polygons to the correct CRS SVY21.
 
 ```{r}
-#| eval: false
 mpsz3414_sf <- st_transform(mpsz_sf, 3414)
 ```
 
@@ -419,7 +417,7 @@ main_island_outline <- st_union(main_island)
 plot(main_island_outline)
 ```
 
-### Writing data as rds
+#### Writing data as rds
 
 With this, we can now save the data in the rds format.
 
@@ -428,10 +426,42 @@ With this, we can now save the data in the rds format.
 write_rds(main_island_outline, "data/rds/islandOutline.rds")
 ```
 
+### Singapore road network
+
+In order to conduct Network Kernel Density Estimation (NKDE), we will need a road network to map points onto. For Singapore's road network, we can get data from OpenStreetMap via [Geofabrik](https://download.geofabrik.de/). From the documentation that comes with the download, we know that the road network is found in the `gis_osm_roads_free_1` shape file.
+
+```{r}
+#| eval: false
+roads_all <- st_read(dsn = "data/geospatial/openstreetmap", 
+                layer = "gis_osm_roads_free_1")
+```
+
+This data is also not projected to SVY21, which is something we will have to fix.
+
+```{r}
+#| eval: false
+roads_all <- st_transform(roads_all, 3414)
+```
+
+One issue currently is that the data includes all roads from [Singapore, Malaysia and Brunei](https://download.geofabrik.de/asia.html). We only want the road network for Singapore. In order to extract this, we can use *st_intersection* to filter for roads within Singapore based on the `CoastalOutline` layer (as imported from rds)
+
+```{r}
+#| eval: false
+sg_roads <- st_intersection(roads_all, CoastalOutline)
+```
+
+Due to the size of the data, we will later be narrowing the scope of our investigation for NKDE to certain subzones. For now, I will save the current road network into an rds.
+
+```{r}
+#| eval: false
+write_rds(sg_roads, "data/rds/sgroads.rds")
+```
+
 ## Final import of data
 
 ```{r}
 origin_all_df <- read_rds("data/rds/grab_origins.rds")
 dest_all_df <- read_rds("data/rds/grab_dest.rds")
 CoastalOutline <- read_rds("data/rds/islandOutline.rds")
+sg_roads <- read_rds("data/rds/sgroads.rds")
 ```
