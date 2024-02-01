@@ -42,7 +42,7 @@ For this exercise, I will be using the following packages:
 pacman::p_load(sf, tidyverse, tmap, spatstat, maptools, raster, arrow, lubridate, readr)
 ```
 
-# Importing and transforming data
+# Data Import and initial data transformation
 
 For this section, after all data sets have been transformed, they will be saved in the `rds` format for easier use in the rest of the exercise.
 
@@ -357,6 +357,8 @@ write_rds(dest_all, "data/rds/grab_dest.rds")
 This layer is derived from the Master Plan 2019 Subzone Boundary (No Sea) from data.gov. First, it needs to be imported into rstudio using *st_read()*
 
 ```{r}
+#| eval: false
+
 mpsz_sf <- st_read(dsn = "data/geospatial", 
                 layer = "MPSZ-2019")
 ```
@@ -364,6 +366,8 @@ mpsz_sf <- st_read(dsn = "data/geospatial",
 From the summary, it can be seen that the layer is projected to WGS84. To continue, there is the need to reproject the polygons to the correct CRS SVY21.
 
 ```{r}
+#| eval: false
+
 mpsz3414_sf <- st_transform(mpsz_sf, 3414)
 ```
 
@@ -412,9 +416,8 @@ Now, we can use *st_union* to get the outline of Singapore.
 
 ```{r}
 #| eval: false
-main_island_outline <- st_union(main_island)
 
-plot(main_island_outline)
+plot(st_union(main_island))
 ```
 
 #### Writing data as rds
@@ -423,7 +426,8 @@ With this, we can now save the data in the rds format.
 
 ```{r}
 #| eval: false
-write_rds(main_island_outline, "data/rds/islandOutline.rds")
+
+write_rds(main_island, "data/rds/islandOutline.rds")
 ```
 
 ### Singapore road network
@@ -432,6 +436,7 @@ In order to conduct Network Kernel Density Estimation (NKDE), we will need a roa
 
 ```{r}
 #| eval: false
+
 roads_all <- st_read(dsn = "data/geospatial/openstreetmap", 
                 layer = "gis_osm_roads_free_1")
 ```
@@ -440,6 +445,7 @@ This data is also not projected to SVY21, which is something we will have to fix
 
 ```{r}
 #| eval: false
+
 roads_all <- st_transform(roads_all, 3414)
 ```
 
@@ -447,6 +453,7 @@ One issue currently is that the data includes all roads from [Singapore, Malaysi
 
 ```{r}
 #| eval: false
+
 sg_roads <- st_intersection(roads_all, CoastalOutline)
 ```
 
@@ -454,14 +461,180 @@ Due to the size of the data, we will later be narrowing the scope of our investi
 
 ```{r}
 #| eval: false
+
 write_rds(sg_roads, "data/rds/sgroads.rds")
 ```
 
-## Final import of data
+# Final import of data
 
 ```{r}
 origin_all_df <- read_rds("data/rds/grab_origins.rds")
 dest_all_df <- read_rds("data/rds/grab_dest.rds")
 CoastalOutline <- read_rds("data/rds/islandOutline.rds")
 sg_roads <- read_rds("data/rds/sgroads.rds")
+```
+
+# Data wrangling: origins
+
+## Analysis of origins
+
+First, lets look at the distribution of origins over time using `ggplot`.
+
+```{r}
+ggplot(data = origin_all_df,
+       aes(x=weekday)) +
+geom_bar()
+```
+
+As seen above, the data is evenly distributed across all days of the week.
+
+### ppp object transformation
+
+In order to conduct Kernel Density Estimation (KDE), we need to transform our layers into a ppp object. Before we begin that process, we will need to transform `origin_all_df` into an sf object using *st_as_sf()*.
+
+::: callout-important
+For the "crs" argument of *st_as_sf()*, we need to provide it with a geodetic CRS and not a projected CRS. To transform the CRS, we can pipe the output into an *st_transform()* argument.
+:::
+
+```{r}
+origins_sf <- st_as_sf(origin_all_df, 
+                       coords = c("rawlng", "rawlat"),
+                       crs=4326) %>%
+  st_transform(crs = 3414)
+```
+
+Now, we can transform all relevant data frames into a ppp object (via transforming to Spatial/\*, SpatialPoints and then ppp objects), which we can inspect using the *summary* function.
+
+```{r}
+origin_spatial <- as_Spatial(origins_sf)
+origin_sp <- as(origin_spatial, "SpatialPoints")
+origin_ppp <- as(origin_sp, "ppp")
+
+summary(origin_ppp)
+```
+
+### Duplicate data handling
+
+Now, we need to check for duplicated data.
+
+```{r}
+any(duplicated(origin_ppp))
+```
+
+If we want to know how many locations have more than one point event, we can use the following:
+
+```{r}
+sum(multiplicity(origin_ppp) > 1)
+```
+
+To handle this data, we can employ **jittering** so that points do not occupy the exact same space.
+
+```{r}
+origins_ppp_jit <- rjitter(origin_ppp, 
+                             retry=TRUE, 
+                             nsim=1, 
+                             drop=TRUE)
+```
+
+Now we can check again for duplicate points.
+
+```{r}
+any(duplicated(origins_ppp_jit))
+```
+
+### Creating owin object
+
+Next, we need to confine the analysis with a geographical area like Singapore boundary. If a study area is not defined and confined, the data points will assume it can occur within blank spaces (because technically it will spread out at random).
+
+```{r}
+sg_owin <- as.owin(CoastalOutline)
+plot(sg_owin)
+```
+```{r}
+summary(sg_owin)
+```
+
+With that, we can finally plot the point data onto the map.
+
+```{r}
+originSG = origins_ppp_jit[sg_owin]
+
+plot(originSG)
+```
+
+# Kernel Density Estimation: origins
+
+## Rescaling values
+
+Before we can conduct KDE analysis, we first need to rescale the unit of measurement in `originSG` from metres (the unit of measurement in SVY21) to kilometres (to avoid small numbers).
+
+```{r}
+originSG_km <- rescale(originSG, 1000, "km")
+```
+
+## Working with different automatic bandwidth selection methods
+
+There are 4 different automatic bandwidth selection method that we can choose: *bw.diggle, bw.CvL, bw.scott* and *bw.ppl*. We can plot all of them to see which is the best fitting method for the data that we have.
+
+```{r}
+kde_origins_dig <- density(originSG_km,
+                              sigma=bw.diggle,
+                              edge=TRUE,
+                            kernel="gaussian") 
+
+plot(kde_origins_dig, main = "bw.diggle")
+```
+
+```{r}
+#| eval: false
+
+kde_origins_dig <- density(originSG_km,
+                              sigma=bw.diggle,
+                              edge=TRUE,
+                            kernel="gaussian") 
+
+kde_origins_ppl <- density(originSG_km, 
+                               sigma=bw.ppl, 
+                               edge=TRUE,
+                               kernel="gaussian")
+par(mfrow=c(1,2))
+plot(kde_origins_dig, main = "bw.diggle")
+plot(kde_origins_ppl, main = "bw.ppl")
+```
+
+```{r}
+#| eval: false
+
+kde_origins_cvl <- density(originSG_km,
+                              sigma=bw.CvL,
+                              edge=TRUE,
+                            kernel="gaussian") 
+```
+
+```{r}
+#| eval: false
+
+kde_origins_scott <- density(originSG_km,
+                              sigma=bw.scott,
+                              edge=TRUE,
+                            kernel="gaussian") 
+```
+
+```{r}
+#| eval: false
+
+kde_origins_ppl <- density(originSG_km,
+                              sigma=bw.ppl,
+                              edge=TRUE,
+                            kernel="gaussian") 
+```
+
+```{r}
+#| eval: false
+
+par(mfrow=c(1,2))
+plot(kde_origins_dig)
+plot(kde_origins_cvl)
+plot(kde_origins_scott)
+plot(kde_origins_ppl)
 ```

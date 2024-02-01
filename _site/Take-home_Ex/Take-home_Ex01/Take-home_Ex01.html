@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2024-01-31">
+<meta name="dcterms.date" content="2024-02-01">
 
 <title>IS415-GAA-2024 - Take Home Exercise 1: Application of Spatial Point Patterns Analysis</title>
 <style>
@@ -223,7 +223,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <ul>
   <li><a href="#project-overview" id="toc-project-overview" class="nav-link active" data-scroll-target="#project-overview">Project overview</a></li>
   <li><a href="#installing-r-packages" id="toc-installing-r-packages" class="nav-link" data-scroll-target="#installing-r-packages">Installing R packages</a></li>
-  <li><a href="#importing-and-transforming-data" id="toc-importing-and-transforming-data" class="nav-link" data-scroll-target="#importing-and-transforming-data">Importing and transforming data</a>
+  <li><a href="#data-import-and-initial-data-transformation" id="toc-data-import-and-initial-data-transformation" class="nav-link" data-scroll-target="#data-import-and-initial-data-transformation">Data Import and initial data transformation</a>
   <ul class="collapse">
   <li><a href="#aspatial-data" id="toc-aspatial-data" class="nav-link" data-scroll-target="#aspatial-data">Aspatial data</a>
   <ul class="collapse">
@@ -234,7 +234,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#singapore-coastal-outline-excluding-islands" id="toc-singapore-coastal-outline-excluding-islands" class="nav-link" data-scroll-target="#singapore-coastal-outline-excluding-islands">Singapore Coastal outline (excluding islands)</a></li>
   <li><a href="#singapore-road-network" id="toc-singapore-road-network" class="nav-link" data-scroll-target="#singapore-road-network">Singapore road network</a></li>
   </ul></li>
+  </ul></li>
   <li><a href="#final-import-of-data" id="toc-final-import-of-data" class="nav-link" data-scroll-target="#final-import-of-data">Final import of data</a></li>
+  <li><a href="#data-wrangling-origins" id="toc-data-wrangling-origins" class="nav-link" data-scroll-target="#data-wrangling-origins">Data wrangling: origins</a>
+  <ul class="collapse">
+  <li><a href="#analysis-of-origins" id="toc-analysis-of-origins" class="nav-link" data-scroll-target="#analysis-of-origins">Analysis of origins</a>
+  <ul class="collapse">
+  <li><a href="#ppp-object-transformation" id="toc-ppp-object-transformation" class="nav-link" data-scroll-target="#ppp-object-transformation">ppp object transformation</a></li>
+  <li><a href="#duplicate-data-handling" id="toc-duplicate-data-handling" class="nav-link" data-scroll-target="#duplicate-data-handling">Duplicate data handling</a></li>
+  <li><a href="#creating-owin-object" id="toc-creating-owin-object" class="nav-link" data-scroll-target="#creating-owin-object">Creating owin object</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#kernel-density-estimation-origins" id="toc-kernel-density-estimation-origins" class="nav-link" data-scroll-target="#kernel-density-estimation-origins">Kernel Density Estimation: origins</a>
+  <ul class="collapse">
+  <li><a href="#rescaling-values" id="toc-rescaling-values" class="nav-link" data-scroll-target="#rescaling-values">Rescaling values</a></li>
+  <li><a href="#working-with-different-automatic-bandwidth-selection-methods" id="toc-working-with-different-automatic-bandwidth-selection-methods" class="nav-link" data-scroll-target="#working-with-different-automatic-bandwidth-selection-methods">Working with different automatic bandwidth selection methods</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -255,7 +269,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 31, 2024</p>
+      <p class="date">February 1, 2024</p>
     </div>
   </div>
     
@@ -286,8 +300,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, tidyverse, tmap, spatstat, maptools, raster, arrow, lubridate, readr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="importing-and-transforming-data" class="level1">
-<h1>Importing and transforming data</h1>
+<section id="data-import-and-initial-data-transformation" class="level1">
+<h1>Data Import and initial data transformation</h1>
 <p>For this section, after all data sets have been transformed, they will be saved in the <code>rds</code> format for easier use in the rest of the exercise.</p>
 <section id="aspatial-data" class="level2">
 <h2 class="anchored" data-anchor-id="aspatial-data">Aspatial data</h2>
@@ -584,24 +598,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>mpsz_sf <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>, </span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">layer =</span> <span class="st">"MPSZ-2019"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Reading layer `MPSZ-2019' from data source 
-  `C:\OdeliaPeh\IS415-GAA-2024\Take-home_Ex\Take-home_Ex01\data\geospatial' 
-  using driver `ESRI Shapefile'
-Simple feature collection with 332 features and 6 fields
-Geometry type: MULTIPOLYGON
-Dimension:     XY
-Bounding box:  xmin: 103.6057 ymin: 1.158699 xmax: 104.0885 ymax: 1.470775
-Geodetic CRS:  WGS 84</code></pre>
-</div>
 </div>
 <p>From the summary, it can be seen that the layer is projected to WGS84. To continue, there is the need to reproject the polygons to the correct CRS SVY21.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>mpsz3414_sf <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(mpsz_sf, <span class="dv">3414</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>mpsz3414_sf <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(mpsz_sf, <span class="dv">3414</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Now, we can plot the map and view the data.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mpsz3414_sf[<span class="st">"SUBZONE_N"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mpsz3414_sf[<span class="st">"SUBZONE_N"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>There are some islands in the map that lack bridges for Grab drivers to reach, such as Coney Island. However, there are other relevant islands such as Sentosa that need to be kept.</p>
 <p>From research, Grab drivers can be observed to be able to enter <a href="https://www.grab.com/sg/sentosaentry/">Sentosa</a> and <a href="https://www.firstlane.com.sg/grab-jurong-island-pass/">Jurong Island</a> to pick up and drop off passengers at the current moment. However, the Jurong Island polygon in <code>mpsz3414_sf</code> is combined with another island Bukom. Furthermore, Grab drivers are only allowed onto the island if they have a security pass, resulting in few drivers entering and exiting the island. Therefore, I am choosing to remove Jurong Island and Bukom from the map.</p>
@@ -616,28 +620,26 @@ Geodetic CRS:  WGS 84</code></pre>
 </ul>
 <p>To remove these, I’ve chosen to filter them out by name. This is because Sentosa and Jurong Island are also labelled as “islands” and would otherwise be caught.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>main_island <span class="ot">&lt;-</span> mpsz3414_sf <span class="sc">%&gt;%</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span><span class="st">"CONEY ISLAND"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"NORTH-EASTERN ISLANDS"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"SOUTHERN GROUP"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"SUDONG"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"SEMAKAU"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"SUDONG"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"JURONG ISLAND AND BUKOM"</span>)</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(main_island[<span class="st">"SUBZONE_N"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>main_island <span class="ot">&lt;-</span> mpsz3414_sf <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span><span class="st">"CONEY ISLAND"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"NORTH-EASTERN ISLANDS"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"SOUTHERN GROUP"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"SUDONG"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"SEMAKAU"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"SUDONG"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(SUBZONE_N <span class="sc">!=</span> <span class="st">"JURONG ISLAND AND BUKOM"</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(main_island[<span class="st">"SUBZONE_N"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Now, we can use <em>st_union</em> to get the outline of Singapore.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>main_island_outline <span class="ot">&lt;-</span> <span class="fu">st_union</span>(main_island)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(main_island_outline)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">st_union</span>(main_island))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="writing-data-as-rds-1" class="level4">
 <h4 class="anchored" data-anchor-id="writing-data-as-rds-1">Writing data as rds</h4>
 <p>With this, we can now save the data in the rds format.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(main_island_outline, <span class="st">"data/rds/islandOutline.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(main_island, <span class="st">"data/rds/islandOutline.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
@@ -645,30 +647,258 @@ Geodetic CRS:  WGS 84</code></pre>
 <h3 class="anchored" data-anchor-id="singapore-road-network">Singapore road network</h3>
 <p>In order to conduct Network Kernel Density Estimation (NKDE), we will need a road network to map points onto. For Singapore’s road network, we can get data from OpenStreetMap via <a href="https://download.geofabrik.de/">Geofabrik</a>. From the documentation that comes with the download, we know that the road network is found in the <code>gis_osm_roads_free_1</code> shape file.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>roads_all <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial/openstreetmap"</span>, </span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">layer =</span> <span class="st">"gis_osm_roads_free_1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>roads_all <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial/openstreetmap"</span>, </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">layer =</span> <span class="st">"gis_osm_roads_free_1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>This data is also not projected to SVY21, which is something we will have to fix.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>roads_all <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(roads_all, <span class="dv">3414</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>roads_all <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(roads_all, <span class="dv">3414</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>One issue currently is that the data includes all roads from <a href="https://download.geofabrik.de/asia.html">Singapore, Malaysia and Brunei</a>. We only want the road network for Singapore. In order to extract this, we can use <em>st_intersection</em> to filter for roads within Singapore based on the <code>CoastalOutline</code> layer (as imported from rds)</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>sg_roads <span class="ot">&lt;-</span> <span class="fu">st_intersection</span>(roads_all, CoastalOutline)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>sg_roads <span class="ot">&lt;-</span> <span class="fu">st_intersection</span>(roads_all, CoastalOutline)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Due to the size of the data, we will later be narrowing the scope of our investigation for NKDE to certain subzones. For now, I will save the current road network into an rds.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(sg_roads, <span class="st">"data/rds/sgroads.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(sg_roads, <span class="st">"data/rds/sgroads.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
-<section id="final-import-of-data" class="level2">
-<h2 class="anchored" data-anchor-id="final-import-of-data">Final import of data</h2>
+</section>
+<section id="final-import-of-data" class="level1">
+<h1>Final import of data</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>origin_all_df <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/grab_origins.rds"</span>)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>dest_all_df <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/grab_dest.rds"</span>)</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>CoastalOutline <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/islandOutline.rds"</span>)</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>sg_roads <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/sgroads.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>origin_all_df <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/grab_origins.rds"</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>dest_all_df <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/grab_dest.rds"</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>CoastalOutline <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/islandOutline.rds"</span>)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>sg_roads <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/sgroads.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="data-wrangling-origins" class="level1">
+<h1>Data wrangling: origins</h1>
+<section id="analysis-of-origins" class="level2">
+<h2 class="anchored" data-anchor-id="analysis-of-origins">Analysis of origins</h2>
+<p>First, lets look at the distribution of origins over time using <code>ggplot</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> origin_all_df,</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x=</span>weekday)) <span class="sc">+</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">geom_bar</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>As seen above, the data is evenly distributed across all days of the week.</p>
+<section id="ppp-object-transformation" class="level3">
+<h3 class="anchored" data-anchor-id="ppp-object-transformation">ppp object transformation</h3>
+<p>In order to conduct Kernel Density Estimation (KDE), we need to transform our layers into a ppp object. Before we begin that process, we will need to transform <code>origin_all_df</code> into an sf object using <em>st_as_sf()</em>.</p>
+<div class="callout-important callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For the “crs” argument of <em>st_as_sf()</em>, we need to provide it with a geodetic CRS and not a projected CRS. To transform the CRS, we can pipe the output into an <em>st_transform()</em> argument.</p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>origins_sf <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(origin_all_df, </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">coords =</span> <span class="fu">c</span>(<span class="st">"rawlng"</span>, <span class="st">"rawlat"</span>),</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">crs=</span><span class="dv">4326</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="dv">3414</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now, we can transform all relevant data frames into a ppp object (via transforming to Spatial/*, SpatialPoints and then ppp objects), which we can inspect using the <em>summary</em> function.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>origin_spatial <span class="ot">&lt;-</span> <span class="fu">as_Spatial</span>(origins_sf)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>origin_sp <span class="ot">&lt;-</span> <span class="fu">as</span>(origin_spatial, <span class="st">"SpatialPoints"</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>origin_ppp <span class="ot">&lt;-</span> <span class="fu">as</span>(origin_sp, <span class="st">"ppp"</span>)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(origin_ppp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Planar point pattern:  280000 points
+Average intensity 0.0002473666 points per square unit
+
+*Pattern contains duplicated points*
+
+Coordinates are given to 3 decimal places
+i.e. rounded to the nearest multiple of 0.001 units
+
+Window: rectangle = [3628.24, 49845.23] x [25198.14, 49689.64] units
+                    (46220 x 24490 units)
+Window area = 1131920000 square units</code></pre>
+</div>
+</div>
+</section>
+<section id="duplicate-data-handling" class="level3">
+<h3 class="anchored" data-anchor-id="duplicate-data-handling">Duplicate data handling</h3>
+<p>Now, we need to check for duplicated data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">duplicated</span>(origin_ppp))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] TRUE</code></pre>
+</div>
+</div>
+<p>If we want to know how many locations have more than one point event, we can use the following:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">multiplicity</span>(origin_ppp) <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 120</code></pre>
+</div>
+</div>
+<p>To handle this data, we can employ <strong>jittering</strong> so that points do not occupy the exact same space.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>origins_ppp_jit <span class="ot">&lt;-</span> <span class="fu">rjitter</span>(origin_ppp, </span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>                             <span class="at">retry=</span><span class="cn">TRUE</span>, </span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nsim=</span><span class="dv">1</span>, </span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>                             <span class="at">drop=</span><span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we can check again for duplicate points.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">duplicated</span>(origins_ppp_jit))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] FALSE</code></pre>
+</div>
+</div>
+</section>
+<section id="creating-owin-object" class="level3">
+<h3 class="anchored" data-anchor-id="creating-owin-object">Creating owin object</h3>
+<p>Next, we need to confine the analysis with a geographical area like Singapore boundary. If a study area is not defined and confined, the data points will assume it can occur within blank spaces (because technically it will spread out at random).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>sg_owin <span class="ot">&lt;-</span> <span class="fu">as.owin</span>(CoastalOutline)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sg_owin)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(sg_owin)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Window: polygonal boundary
+41 separate polygons (26 holes)
+                  vertices         area relative.area
+polygon 1              285  1.61128e+06      2.41e-03
+polygon 2               27  1.50315e+04      2.25e-05
+polygon 3 (hole)        41 -4.01660e+04     -6.01e-05
+polygon 4 (hole)       317 -5.11280e+04     -7.65e-05
+polygon 5 (hole)         3 -4.14099e-04     -6.20e-13
+polygon 6               30  2.80002e+04      4.19e-05
+polygon 7 (hole)         4 -2.86396e-01     -4.29e-10
+polygon 8 (hole)         3 -1.81439e-04     -2.71e-13
+polygon 9 (hole)         3 -5.99535e-04     -8.97e-13
+polygon 10 (hole)        3 -3.04561e-04     -4.56e-13
+polygon 11 (hole)        3 -4.46076e-04     -6.67e-13
+polygon 12 (hole)        3 -4.52043e-05     -6.76e-14
+polygon 13 (hole)        5 -2.44411e-04     -3.66e-13
+polygon 14              71  8.18750e+03      1.23e-05
+polygon 15 (hole)       38 -7.79904e+03     -1.17e-05
+polygon 16              91  1.49663e+04      2.24e-05
+polygon 17 (hole)      395 -7.38124e+03     -1.10e-05
+polygon 18              40  1.38607e+04      2.07e-05
+polygon 19 (hole)       11 -8.36705e+01     -1.25e-07
+polygon 20 (hole)        3 -2.33435e-03     -3.49e-12
+polygon 21              45  2.51218e+03      3.76e-06
+polygon 22             139  3.22293e+03      4.82e-06
+polygon 23             148  3.10395e+03      4.64e-06
+polygon 24 (hole)        4 -1.72650e-04     -2.58e-13
+polygon 25              75  1.73526e+04      2.60e-05
+polygon 26              83  5.28920e+03      7.91e-06
+polygon 27             106  3.04104e+03      4.55e-06
+polygon 28              71  5.63061e+03      8.43e-06
+polygon 29              10  1.99717e+02      2.99e-07
+polygon 30 (hole)        3 -1.37223e-02     -2.05e-11
+polygon 31 (hole)        3 -8.68789e-04     -1.30e-12
+polygon 32 (hole)        3 -3.39794e-04     -5.08e-13
+polygon 33 (hole)        3 -3.90173e-05     -5.84e-14
+polygon 34 (hole)        3 -9.59850e-05     -1.44e-13
+polygon 35 (hole)        8 -4.28707e-01     -6.41e-10
+polygon 36 (hole)        4 -2.18616e-04     -3.27e-13
+polygon 37 (hole)        5 -3.64686e-02     -5.46e-11
+polygon 38 (hole)        6 -8.37554e-01     -1.25e-09
+polygon 39 (hole)        5 -2.92235e-04     -4.37e-13
+polygon 40           13919  6.66691e+08      9.98e-01
+polygon 41 (hole)        3 -7.43616e-06     -1.11e-14
+enclosing rectangle: [2667.54, 55941.94] x [21448.47, 50256.33] units
+                     (53270 x 28810 units)
+Window area = 668316000 square units
+Fraction of frame area: 0.435</code></pre>
+</div>
+</div>
+<p>With that, we can finally plot the point data onto the map.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>originSG <span class="ot">=</span> origins_ppp_jit[sg_owin]</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(originSG)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-29-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="kernel-density-estimation-origins" class="level1">
+<h1>Kernel Density Estimation: origins</h1>
+<section id="rescaling-values" class="level2">
+<h2 class="anchored" data-anchor-id="rescaling-values">Rescaling values</h2>
+<p>Before we can conduct KDE analysis, we first need to rescale the unit of measurement in <code>originSG</code> from metres (the unit of measurement in SVY21) to kilometres (to avoid small numbers).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>originSG_km <span class="ot">&lt;-</span> <span class="fu">rescale</span>(originSG, <span class="dv">1000</span>, <span class="st">"km"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="working-with-different-automatic-bandwidth-selection-methods" class="level2">
+<h2 class="anchored" data-anchor-id="working-with-different-automatic-bandwidth-selection-methods">Working with different automatic bandwidth selection methods</h2>
+<p>There are 4 different automatic bandwidth selection method that we can choose: <em>bw.diggle, bw.CvL, bw.scott</em> and <em>bw.ppl</em>. We can plot all of them to see which is the best fitting method for the data that we have.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>kde_origins_dig <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.diggle,</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_dig, <span class="at">main =</span> <span class="st">"bw.diggle"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>kde_origins_dig <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.diggle,</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>kde_origins_ppl <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km, </span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>                               <span class="at">sigma=</span>bw.ppl, </span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>                               <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>                               <span class="at">kernel=</span><span class="st">"gaussian"</span>)</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_dig, <span class="at">main =</span> <span class="st">"bw.diggle"</span>)</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_ppl, <span class="at">main =</span> <span class="st">"bw.ppl"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>kde_origins_cvl <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.CvL,</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>kde_origins_scott <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.scott,</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>kde_origins_ppl <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.ppl,</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_dig)</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_cvl)</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_scott)</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_ppl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
