@@ -547,9 +547,11 @@ any(duplicated(origins_ppp_jit))
 Next, we need to confine the analysis with a geographical area like Singapore boundary. If a study area is not defined and confined, the data points will assume it can occur within blank spaces (because technically it will spread out at random).
 
 ```{r}
+CoastalOutline <- st_union(CoastalOutline)
 sg_owin <- as.owin(CoastalOutline)
 plot(sg_owin)
 ```
+
 ```{r}
 summary(sg_owin)
 ```
@@ -574,7 +576,14 @@ originSG_km <- rescale(originSG, 1000, "km")
 
 ## Working with different automatic bandwidth selection methods
 
-There are 4 different automatic bandwidth selection method that we can choose: *bw.diggle, bw.CvL, bw.scott* and *bw.ppl*. We can plot all of them to see which is the best fitting method for the data that we have.
+There are 4 different automatic bandwidth selection method that we can choose: *bw.diggle, bw.CvL, bw.scott* and *bw.ppl*. For this exercise, we are using *bw.diggle*, or the radius selection method. (should use bw.ppl as it tends to produce the more appropriate values when the pattern consists predominantly of tight clusters.) We can retrieve the bandwidth used to compute the KDE layer as well.
+
+```{r}
+bw <- bw.diggle(originSG)
+bw
+```
+
+We can plot the KDE in order to see what it looks like on the map. As a reminder, the current data frame contains 280 000 items, so the numbers may be fairly large.
 
 ```{r}
 kde_origins_dig <- density(originSG_km,
@@ -585,6 +594,42 @@ kde_origins_dig <- density(originSG_km,
 plot(kde_origins_dig, main = "bw.diggle")
 ```
 
+## Working with different kernel methods
+
+By default, the kernel method used in density.ppp() is gaussian. But there are three other options, namely: Epanechnikov, Quartic and Dics. We can test each of these to see which kernel method provides a tighter grouping.
+
+```{r}
+par(mfrow=c(2,2))
+plot(density(originSG_km, 
+             sigma=bw.diggle, 
+             edge=TRUE, 
+             kernel="gaussian"), 
+     main="Gaussian")
+
+plot(density(originSG_km, 
+             sigma=bw.diggle, 
+             edge=TRUE, 
+             kernel="epanechnikov"), 
+     main="Epanechnikov")
+
+plot(density(originSG_km, 
+             sigma=bw.diggle, 
+             edge=TRUE, 
+             kernel="quartic"), 
+     main="Quartic")
+
+plot(density(originSG_km, 
+             sigma=bw.diggle, 
+             edge=TRUE, 
+             kernel="disc"), 
+     main="Disc")
+```
+Since there is not much of a difference between the different kernel methods, we will simply use the default Gaussian method.
+
+# Fixed and Adaptive KDE bandwidths
+
+
+# Other attempts at bandwidth
 ```{r}
 #| eval: false
 

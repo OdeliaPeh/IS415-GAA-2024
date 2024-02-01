@@ -329,7 +329,6 @@ plot(sg_owin)
 And we can check it using *summary()* as well
 
 ```{r}
-#| eval: false
 summary(sg_owin)
 ```
 

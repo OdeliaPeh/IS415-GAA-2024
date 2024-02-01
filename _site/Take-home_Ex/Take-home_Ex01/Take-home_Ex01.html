@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2024-02-01">
+<meta name="dcterms.date" content="2024-02-02">
 
 <title>IS415-GAA-2024 - Take Home Exercise 1: Application of Spatial Point Patterns Analysis</title>
 <style>
@@ -249,7 +249,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <ul class="collapse">
   <li><a href="#rescaling-values" id="toc-rescaling-values" class="nav-link" data-scroll-target="#rescaling-values">Rescaling values</a></li>
   <li><a href="#working-with-different-automatic-bandwidth-selection-methods" id="toc-working-with-different-automatic-bandwidth-selection-methods" class="nav-link" data-scroll-target="#working-with-different-automatic-bandwidth-selection-methods">Working with different automatic bandwidth selection methods</a></li>
+  <li><a href="#working-with-different-kernel-methods" id="toc-working-with-different-kernel-methods" class="nav-link" data-scroll-target="#working-with-different-kernel-methods">Working with different kernel methods</a></li>
   </ul></li>
+  <li><a href="#fixed-and-adaptive-kde-bandwidths" id="toc-fixed-and-adaptive-kde-bandwidths" class="nav-link" data-scroll-target="#fixed-and-adaptive-kde-bandwidths">Fixed and Adaptive KDE bandwidths</a></li>
+  <li><a href="#other-attempts-at-bandwidth" id="toc-other-attempts-at-bandwidth" class="nav-link" data-scroll-target="#other-attempts-at-bandwidth">Other attempts at bandwidth</a></li>
   </ul>
 </nav>
     </div>
@@ -269,7 +272,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 1, 2024</p>
+      <p class="date">February 2, 2024</p>
     </div>
   </div>
     
@@ -767,8 +770,9 @@ Window area = 1131920000 square units</code></pre>
 <h3 class="anchored" data-anchor-id="creating-owin-object">Creating owin object</h3>
 <p>Next, we need to confine the analysis with a geographical area like Singapore boundary. If a study area is not defined and confined, the data points will assume it can occur within blank spaces (because technically it will spread out at random).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>sg_owin <span class="ot">&lt;-</span> <span class="fu">as.owin</span>(CoastalOutline)</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sg_owin)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>CoastalOutline <span class="ot">&lt;-</span> <span class="fu">st_union</span>(CoastalOutline)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>sg_owin <span class="ot">&lt;-</span> <span class="fu">as.owin</span>(CoastalOutline)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sg_owin)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -777,49 +781,58 @@ Window area = 1131920000 square units</code></pre>
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(sg_owin)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Window: polygonal boundary
-41 separate polygons (26 holes)
+50 separate polygons (35 holes)
                   vertices         area relative.area
-polygon 1              285  1.61128e+06      2.41e-03
-polygon 2               27  1.50315e+04      2.25e-05
-polygon 3 (hole)        41 -4.01660e+04     -6.01e-05
-polygon 4 (hole)       317 -5.11280e+04     -7.65e-05
-polygon 5 (hole)         3 -4.14099e-04     -6.20e-13
-polygon 6               30  2.80002e+04      4.19e-05
-polygon 7 (hole)         4 -2.86396e-01     -4.29e-10
-polygon 8 (hole)         3 -1.81439e-04     -2.71e-13
-polygon 9 (hole)         3 -5.99535e-04     -8.97e-13
-polygon 10 (hole)        3 -3.04561e-04     -4.56e-13
-polygon 11 (hole)        3 -4.46076e-04     -6.67e-13
-polygon 12 (hole)        3 -4.52043e-05     -6.76e-14
-polygon 13 (hole)        5 -2.44411e-04     -3.66e-13
-polygon 14              71  8.18750e+03      1.23e-05
-polygon 15 (hole)       38 -7.79904e+03     -1.17e-05
-polygon 16              91  1.49663e+04      2.24e-05
-polygon 17 (hole)      395 -7.38124e+03     -1.10e-05
-polygon 18              40  1.38607e+04      2.07e-05
-polygon 19 (hole)       11 -8.36705e+01     -1.25e-07
-polygon 20 (hole)        3 -2.33435e-03     -3.49e-12
-polygon 21              45  2.51218e+03      3.76e-06
-polygon 22             139  3.22293e+03      4.82e-06
-polygon 23             148  3.10395e+03      4.64e-06
-polygon 24 (hole)        4 -1.72650e-04     -2.58e-13
-polygon 25              75  1.73526e+04      2.60e-05
-polygon 26              83  5.28920e+03      7.91e-06
-polygon 27             106  3.04104e+03      4.55e-06
-polygon 28              71  5.63061e+03      8.43e-06
-polygon 29              10  1.99717e+02      2.99e-07
-polygon 30 (hole)        3 -1.37223e-02     -2.05e-11
-polygon 31 (hole)        3 -8.68789e-04     -1.30e-12
-polygon 32 (hole)        3 -3.39794e-04     -5.08e-13
-polygon 33 (hole)        3 -3.90173e-05     -5.84e-14
-polygon 34 (hole)        3 -9.59850e-05     -1.44e-13
-polygon 35 (hole)        8 -4.28707e-01     -6.41e-10
-polygon 36 (hole)        4 -2.18616e-04     -3.27e-13
-polygon 37 (hole)        5 -3.64686e-02     -5.46e-11
-polygon 38 (hole)        6 -8.37554e-01     -1.25e-09
-polygon 39 (hole)        5 -2.92235e-04     -4.37e-13
-polygon 40           13919  6.66691e+08      9.98e-01
-polygon 41 (hole)        3 -7.43616e-06     -1.11e-14
+polygon 1            13910  6.66691e+08      9.98e-01
+polygon 2              285  1.61128e+06      2.41e-03
+polygon 3               27  1.50315e+04      2.25e-05
+polygon 4 (hole)        41 -4.01660e+04     -6.01e-05
+polygon 5 (hole)       317 -5.11280e+04     -7.65e-05
+polygon 6 (hole)         3 -4.14099e-04     -6.20e-13
+polygon 7               30  2.80002e+04      4.19e-05
+polygon 8 (hole)         4 -2.86396e-01     -4.29e-10
+polygon 9 (hole)         3 -1.81439e-04     -2.71e-13
+polygon 10 (hole)        3 -8.68789e-04     -1.30e-12
+polygon 11 (hole)        3 -5.99535e-04     -8.97e-13
+polygon 12 (hole)        3 -3.04561e-04     -4.56e-13
+polygon 13 (hole)        3 -4.46076e-04     -6.67e-13
+polygon 14 (hole)        3 -3.39794e-04     -5.08e-13
+polygon 15 (hole)        3 -4.52043e-05     -6.76e-14
+polygon 16 (hole)        3 -3.90173e-05     -5.84e-14
+polygon 17 (hole)        3 -9.59850e-05     -1.44e-13
+polygon 18 (hole)        4 -2.54488e-04     -3.81e-13
+polygon 19 (hole)        4 -4.28453e-01     -6.41e-10
+polygon 20 (hole)        4 -2.18616e-04     -3.27e-13
+polygon 21 (hole)        5 -2.44411e-04     -3.66e-13
+polygon 22 (hole)        5 -3.64686e-02     -5.46e-11
+polygon 23              71  8.18750e+03      1.23e-05
+polygon 24 (hole)        6 -8.37554e-01     -1.25e-09
+polygon 25 (hole)       38 -7.79904e+03     -1.17e-05
+polygon 26 (hole)        3 -3.41897e-05     -5.12e-14
+polygon 27 (hole)        3 -3.65499e-03     -5.47e-12
+polygon 28 (hole)        3 -4.95057e-02     -7.41e-11
+polygon 29              91  1.49663e+04      2.24e-05
+polygon 30 (hole)        5 -2.92235e-04     -4.37e-13
+polygon 31 (hole)        3 -7.43616e-06     -1.11e-14
+polygon 32 (hole)      270 -1.21455e+03     -1.82e-06
+polygon 33 (hole)       19 -4.39650e+00     -6.58e-09
+polygon 34 (hole)       35 -1.38385e+02     -2.07e-07
+polygon 35 (hole)       23 -1.99656e+01     -2.99e-08
+polygon 36              40  1.38607e+04      2.07e-05
+polygon 37 (hole)       41 -6.00381e+03     -8.98e-06
+polygon 38 (hole)        7 -1.40546e-01     -2.10e-10
+polygon 39 (hole)       11 -8.36705e+01     -1.25e-07
+polygon 40 (hole)        3 -2.33435e-03     -3.49e-12
+polygon 41              45  2.51218e+03      3.76e-06
+polygon 42             139  3.22293e+03      4.82e-06
+polygon 43             148  3.10395e+03      4.64e-06
+polygon 44 (hole)        4 -1.72650e-04     -2.58e-13
+polygon 45              75  1.73526e+04      2.60e-05
+polygon 46              83  5.28920e+03      7.91e-06
+polygon 47             106  3.04104e+03      4.55e-06
+polygon 48              71  5.63061e+03      8.43e-06
+polygon 49              10  1.99717e+02      2.99e-07
+polygon 50 (hole)        3 -1.37223e-02     -2.05e-11
 enclosing rectangle: [2667.54, 55941.94] x [21448.47, 50256.33] units
                      (53270 x 28810 units)
 Window area = 668316000 square units
@@ -849,60 +862,109 @@ Fraction of frame area: 0.435</code></pre>
 </section>
 <section id="working-with-different-automatic-bandwidth-selection-methods" class="level2">
 <h2 class="anchored" data-anchor-id="working-with-different-automatic-bandwidth-selection-methods">Working with different automatic bandwidth selection methods</h2>
-<p>There are 4 different automatic bandwidth selection method that we can choose: <em>bw.diggle, bw.CvL, bw.scott</em> and <em>bw.ppl</em>. We can plot all of them to see which is the best fitting method for the data that we have.</p>
+<p>There are 4 different automatic bandwidth selection method that we can choose: <em>bw.diggle, bw.CvL, bw.scott</em> and <em>bw.ppl</em>. For this exercise, we are using <em>bw.diggle</em>, or the radius selection method. (should use bw.ppl as it tends to produce the more appropriate values when the pattern consists predominantly of tight clusters.) We can retrieve the bandwidth used to compute the KDE layer as well.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>kde_origins_dig <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.diggle,</span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_dig, <span class="at">main =</span> <span class="st">"bw.diggle"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid" width="672"></p>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>bw <span class="ot">&lt;-</span> <span class="fu">bw.diggle</span>(originSG)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>bw</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   sigma 
+4.264459 </code></pre>
 </div>
 </div>
+<p>We can plot the KDE in order to see what it looks like on the map. As a reminder, the current data frame contains 280 000 items, so the numbers may be fairly large.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>kde_origins_dig <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.diggle,</span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>kde_origins_ppl <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km, </span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>                               <span class="at">sigma=</span>bw.ppl, </span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>                               <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
-<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>                               <span class="at">kernel=</span><span class="st">"gaussian"</span>)</span>
-<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_dig, <span class="at">main =</span> <span class="st">"bw.diggle"</span>)</span>
-<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_ppl, <span class="at">main =</span> <span class="st">"bw.ppl"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>kde_origins_cvl <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.CvL,</span>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>kde_origins_dig <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.diggle,</span>
 <span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_dig, <span class="at">main =</span> <span class="st">"bw.diggle"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-32-1.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>kde_origins_scott <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.scott,</span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>kde_origins_ppl <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.ppl,</span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_dig)</span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_cvl)</span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_scott)</span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_ppl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-
-
 </section>
+<section id="working-with-different-kernel-methods" class="level2">
+<h2 class="anchored" data-anchor-id="working-with-different-kernel-methods">Working with different kernel methods</h2>
+<p>By default, the kernel method used in density.ppp() is gaussian. But there are three other options, namely: Epanechnikov, Quartic and Dics. We can test each of these to see which kernel method provides a tighter grouping.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(originSG_km, </span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma=</span>bw.diggle, </span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">edge=</span><span class="cn">TRUE</span>, </span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">kernel=</span><span class="st">"gaussian"</span>), </span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">main=</span><span class="st">"Gaussian"</span>)</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(originSG_km, </span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma=</span>bw.diggle, </span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>             <span class="at">edge=</span><span class="cn">TRUE</span>, </span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">kernel=</span><span class="st">"epanechnikov"</span>), </span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>     <span class="at">main=</span><span class="st">"Epanechnikov"</span>)</span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(originSG_km, </span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma=</span>bw.diggle, </span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>             <span class="at">edge=</span><span class="cn">TRUE</span>, </span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>             <span class="at">kernel=</span><span class="st">"quartic"</span>), </span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a>     <span class="at">main=</span><span class="st">"Quartic"</span>)</span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(originSG_km, </span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma=</span>bw.diggle, </span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>             <span class="at">edge=</span><span class="cn">TRUE</span>, </span>
+<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a>             <span class="at">kernel=</span><span class="st">"disc"</span>), </span>
+<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a>     <span class="at">main=</span><span class="st">"Disc"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Since there is not much of a difference between the different kernel methods, we will simply use the default Gaussian method.</p>
+</section>
+</section>
+<section id="fixed-and-adaptive-kde-bandwidths" class="level1">
+<h1>Fixed and Adaptive KDE bandwidths</h1>
+</section>
+<section id="other-attempts-at-bandwidth" class="level1">
+<h1>Other attempts at bandwidth</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>kde_origins_dig <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.diggle,</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>kde_origins_ppl <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km, </span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>                               <span class="at">sigma=</span>bw.ppl, </span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>                               <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>                               <span class="at">kernel=</span><span class="st">"gaussian"</span>)</span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_dig, <span class="at">main =</span> <span class="st">"bw.diggle"</span>)</span>
+<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_ppl, <span class="at">main =</span> <span class="st">"bw.ppl"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>kde_origins_cvl <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.CvL,</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>kde_origins_scott <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.scott,</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>kde_origins_ppl <span class="ot">&lt;-</span> <span class="fu">density</span>(originSG_km,</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.ppl,</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_dig)</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_cvl)</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_scott)</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_origins_ppl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+
 </section>
 
 </main> <!-- /main -->
