@@ -66,22 +66,32 @@ df8 <- read_parquet(file="data/aspatial/GrabPosisi/part-00008.parquet")
 df9 <- read_parquet(file="data/aspatial/GrabPosisi/part-00009.parquet")
 ```
 
-#### Data handling: Converting the data type of *pingtimestamp* to date-time
-
-Grab marks the date-time of each data point as a pingtimestamp. As a result, I will need to transform the data type to date-time using lubridate.
+#### Combining the data
+All of the data covers 2 weeks of Grab rides, but they are jumbled up. In order to accurately extract the origin and destination points, we need to combine everything into a singular data frame.
 
 ```{r}
 #| eval: false
-df$pingtimestamp <- as_datetime(df$pingtimestamp)
-df1$pingtimestamp <- as_datetime(df1$pingtimestamp)
-df2$pingtimestamp <- as_datetime(df2$pingtimestamp)
-df3$pingtimestamp <- as_datetime(df3$pingtimestamp)
-df4$pingtimestamp <- as_datetime(df4$pingtimestamp)
-df5$pingtimestamp <- as_datetime(df5$pingtimestamp)
-df6$pingtimestamp <- as_datetime(df6$pingtimestamp)
-df7$pingtimestamp <- as_datetime(df7$pingtimestamp)
-df8$pingtimestamp <- as_datetime(df8$pingtimestamp)
-df9$pingtimestamp <- as_datetime(df9$pingtimestamp)
+
+
+all_grab <- df %>%
+  full_join(df1) %>%
+  full_join(df2) %>%
+  full_join(df3) %>%
+  full_join(df4) %>%
+  full_join(df5) %>%
+  full_join(df6) %>%
+  full_join(df7) %>%
+  full_join(df8) %>%
+  full_join(df9)
+```
+
+#### Data handling: Converting the data type of *pingtimestamp* to date-time
+
+Grab marks the date-time of each data point as a pingtimestamp. As a result, we will need to transform the data type to date-time using lubridate.
+
+```{r}
+#| eval: false
+all_grab$pingtimestamp <- as_datetime(all_grab$pingtimestamp)
 ```
 
 #### Data handling: Extracting trip origins
@@ -89,11 +99,9 @@ df9$pingtimestamp <- as_datetime(df9$pingtimestamp)
 Now, we extract the trip origin locations and derive 3 new columns for weekday, starting hour and day of month into a new data frame. The origin locations are derived by grouping trips according to their `trj_id`, arranging by the date-time and filtering for the first item in each group.
 
 ```{r}
-#| code-fold: true
 #| eval: false
 
-
-origin_df <- df %>%
+origin_df <- all_grab %>%
   group_by(trj_id) %>%
   arrange(pingtimestamp) %>%
   filter(row_number()==1) %>%
@@ -103,95 +111,6 @@ origin_df <- df %>%
          start_hr = factor(hour(pingtimestamp)),
          day = factor(mday(pingtimestamp)))
 
-origin_df1 <- df1 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==1) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-origin_df2 <- df2 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==1) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-origin_df3 <- df3 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==1) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-origin_df4 <- df4 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==1) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-origin_df5 <- df5 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==1) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-origin_df6 <- df6 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==1) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-origin_df7 <- df7 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==1) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-origin_df8 <- df8 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==1) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-origin_df9 <- df9 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==1) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
 ```
 
 #### Data handling: Extracting destinations
@@ -199,11 +118,10 @@ origin_df9 <- df9 %>%
 To extract trip destinations, we use a similar code as above except we filter to take the nth item out of n items in a group.
 
 ```{r}
-#| code-fold: true
 #| eval: false
 
 
-dest_df <- df %>%
+dest_df <- all_grab %>%
   group_by(trj_id) %>%
   arrange(pingtimestamp) %>%
   filter(row_number()==n()) %>%
@@ -212,131 +130,6 @@ dest_df <- df %>%
                         abbr = TRUE),
          start_hr = factor(hour(pingtimestamp)),
          day = factor(mday(pingtimestamp)))
-
-dest_df1 <- df1 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==n()) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-dest_df2 <- df2 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==n()) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-dest_df3 <- df3 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==n()) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-dest_df4 <- df4 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==n()) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-dest_df5 <- df5 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==n()) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-dest_df6 <- df6 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==n()) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-dest_df7 <- df7 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==n()) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-dest_df8 <- df8 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==n()) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-
-dest_df9 <- df9 %>%
-  group_by(trj_id) %>%
-  arrange(pingtimestamp) %>%
-  filter(row_number()==n()) %>%
-  mutate(weekday = wday(pingtimestamp,
-                        label = TRUE,
-                        abbr = TRUE),
-         start_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
-```
-
-#### Combining into one data frame
-
-For easier handling, I am going to combine the data frames into one `origin` data frame and one `destination` data frame.
-
-```{r}
-#| eval: false
-
-origin_all <- origin_df %>%
-  full_join(origin_df1) %>%
-  full_join(origin_df2) %>%
-  full_join(origin_df3) %>%
-  full_join(origin_df4) %>%
-  full_join(origin_df5) %>%
-  full_join(origin_df6) %>%
-  full_join(origin_df7) %>%
-  full_join(origin_df8) %>%
-  full_join(origin_df9)
-
-```
-
-```{r}
-#| eval: false
-
-dest_all <- dest_df %>%
-  full_join(dest_df1) %>%
-  full_join(dest_df2) %>%
-  full_join(dest_df3) %>%
-  full_join(dest_df4) %>%
-  full_join(dest_df5) %>%
-  full_join(dest_df6) %>%
-  full_join(dest_df7) %>%
-  full_join(dest_df8) %>%
-  full_join(dest_df9)
 ```
 
 #### Writing data as rds
@@ -346,8 +139,8 @@ With the data transformation done, we can now write it out as an rds for future 
 ```{r}
 #| eval: false
 
-write_rds(origin_all, "data/rds/grab_origins.rds")
-write_rds(dest_all, "data/rds/grab_dest.rds")
+write_rds(origin_df, "data/rds/grab_origins.rds")
+write_rds(dest_df, "data/rds/grab_dest.rds")
 ```
 
 ## Geospatial data
@@ -527,20 +320,7 @@ If we want to know how many locations have more than one point event, we can use
 sum(multiplicity(origin_ppp) > 1)
 ```
 
-To handle this data, we can employ **jittering** so that points do not occupy the exact same space.
-
-```{r}
-origins_ppp_jit <- rjitter(origin_ppp, 
-                             retry=TRUE, 
-                             nsim=1, 
-                             drop=TRUE)
-```
-
-Now we can check again for duplicate points.
-
-```{r}
-any(duplicated(origins_ppp_jit))
-```
+As we can see, there is no duplicate data in the ppp object.
 
 ### Creating owin object
 
@@ -559,7 +339,7 @@ summary(sg_owin)
 With that, we can finally plot the point data onto the map.
 
 ```{r}
-originSG = origins_ppp_jit[sg_owin]
+originSG = origin_ppp[sg_owin]
 
 plot(originSG)
 ```
@@ -576,63 +356,8 @@ originSG_km <- rescale(originSG, 1000, "km")
 
 ## Working with different automatic bandwidth selection methods
 
-There are 4 different automatic bandwidth selection method that we can choose: *bw.diggle, bw.CvL, bw.scott* and *bw.ppl*. For this exercise, we are using *bw.diggle*, or the radius selection method. (should use bw.ppl as it tends to produce the more appropriate values when the pattern consists predominantly of tight clusters.) We can retrieve the bandwidth used to compute the KDE layer as well.
-
+There are 4 different automatic bandwidth selection method that we can choose: *bw.diggle, bw.CvL, bw.scott* and *bw.ppl*. For this exercise, we are using *bw.diggle*, or the radius selection method. We can plot all four to see which may give us better results.
 ```{r}
-bw <- bw.diggle(originSG)
-bw
-```
-
-We can plot the KDE in order to see what it looks like on the map. As a reminder, the current data frame contains 280 000 items, so the numbers may be fairly large.
-
-```{r}
-kde_origins_dig <- density(originSG_km,
-                              sigma=bw.diggle,
-                              edge=TRUE,
-                            kernel="gaussian") 
-
-plot(kde_origins_dig, main = "bw.diggle")
-```
-
-## Working with different kernel methods
-
-By default, the kernel method used in density.ppp() is gaussian. But there are three other options, namely: Epanechnikov, Quartic and Dics. We can test each of these to see which kernel method provides a tighter grouping.
-
-```{r}
-par(mfrow=c(2,2))
-plot(density(originSG_km, 
-             sigma=bw.diggle, 
-             edge=TRUE, 
-             kernel="gaussian"), 
-     main="Gaussian")
-
-plot(density(originSG_km, 
-             sigma=bw.diggle, 
-             edge=TRUE, 
-             kernel="epanechnikov"), 
-     main="Epanechnikov")
-
-plot(density(originSG_km, 
-             sigma=bw.diggle, 
-             edge=TRUE, 
-             kernel="quartic"), 
-     main="Quartic")
-
-plot(density(originSG_km, 
-             sigma=bw.diggle, 
-             edge=TRUE, 
-             kernel="disc"), 
-     main="Disc")
-```
-Since there is not much of a difference between the different kernel methods, we will simply use the default Gaussian method.
-
-# Fixed and Adaptive KDE bandwidths
-
-
-# Other attempts at bandwidth
-```{r}
-#| eval: false
-
 kde_origins_dig <- density(originSG_km,
                               sigma=bw.diggle,
                               edge=TRUE,
@@ -642,44 +367,105 @@ kde_origins_ppl <- density(originSG_km,
                                sigma=bw.ppl, 
                                edge=TRUE,
                                kernel="gaussian")
-par(mfrow=c(1,2))
-plot(kde_origins_dig, main = "bw.diggle")
-plot(kde_origins_ppl, main = "bw.ppl")
-```
-
-```{r}
-#| eval: false
 
 kde_origins_cvl <- density(originSG_km,
                               sigma=bw.CvL,
                               edge=TRUE,
                             kernel="gaussian") 
-```
-
-```{r}
-#| eval: false
 
 kde_origins_scott <- density(originSG_km,
                               sigma=bw.scott,
                               edge=TRUE,
                             kernel="gaussian") 
+
+par(mfrow=c(2,2))
+plot(kde_origins_dig, main = "bw.diggle")
+plot(kde_origins_ppl, main = "bw.ppl")
+plot(kde_origins_cvl, main = "bw.cvl")
+plot(kde_origins_scott, main = "bw.scott")
 ```
 
-```{r}
-#| eval: false
+We can retrieve the bandwidth used to compute the KDE layer as well.
 
-kde_origins_ppl <- density(originSG_km,
-                              sigma=bw.ppl,
-                              edge=TRUE,
-                            kernel="gaussian") 
+```{r}
+bw.diggle(originSG)
+bw.ppl(originSG)
+bw.CvL(originSG)
+bw.scott(originSG)
 ```
 
-```{r}
-#| eval: false
+As seen, bw.ppl and bw.diggle appears to give relatively similar map results which highlight a single tight cluster in the east and include up to a thousand origin points. Meanwhile, bw.cvl and bw.scott appear to use tighter radii, with bw.scott being able to better show hotspots compared to how spread out bw.cvl looks. Hence, for the rest of this exercise, we will be using bw.scott.
 
+## Working with different kernel methods
+
+By default, the kernel method used in density.ppp() is gaussian. But there are three other options, namely: Epanechnikov, Quartic and Dics. We can test each of these to see which kernel method provides a tighter grouping.
+
+```{r}
+par(mfrow=c(2,2))
+plot(density(originSG_km, 
+             sigma=bw.scott, 
+             edge=TRUE, 
+             kernel="gaussian"), 
+     main="Gaussian")
+
+plot(density(originSG_km, 
+             sigma=bw.scott, 
+             edge=TRUE, 
+             kernel="epanechnikov"), 
+     main="Epanechnikov")
+
+plot(density(originSG_km, 
+             sigma=bw.scott, 
+             edge=TRUE, 
+             kernel="quartic"), 
+     main="Quartic")
+
+plot(density(originSG_km, 
+             sigma=bw.scott, 
+             edge=TRUE, 
+             kernel="disc"), 
+     main="Disc")
+```
+For this exercise, disc and quartic appear to provide us with tighter values. Hence, we will be using Disc.
+
+# Fixed and Adaptive KDE bandwidths
+For a fixed bandwidth, we will be fixing the radius at 600m.
+```{r}
+kde_originSG_600 <- density(originSG_km, sigma=0.6, edge=TRUE, kernel="disc")
+plot(kde_originSG_600)
+```
+Typically, a fixed bandwidth method is very sensitive to highly skewed distribution of spatial point patterns over geographical units. To get around this, we can use an adaptive bandwidth instead.
+
+```{r}
+kde_originSG_adaptive <- adaptive.density(originSG_km, method="kernel")
+plot(kde_originSG_adaptive)
+```
+
+We can compare the fixed and adaptive kernel density estimation outputs by using the code chunk below.
+
+```{r}
 par(mfrow=c(1,2))
-plot(kde_origins_dig)
-plot(kde_origins_cvl)
-plot(kde_origins_scott)
-plot(kde_origins_ppl)
+plot(kde_originSG_600, main = "Fixed bandwidth")
+plot(kde_originSG_adaptive, main = "Adaptive bandwidth")
 ```
+
+## Conversion to raster via grid object
+In order to fully visualise KDE in tmap, we would need to transform it into raster data. Before that, we need to convert it into a grid object
+
+```{r}
+gridded_kde_origins_bw <- as.SpatialGridDataFrame.im(kde_originSG_600)
+spplot(gridded_kde_origins_bw)
+```
+Now, we can convert it to raster data.
+```{r}
+kde_originsSG_bw_raster <- raster(gridded_kde_origins_bw)
+```
+Note that there is no CRS to this data, so we will need to assign it on our own
+```{r}
+projection(kde_originsSG_bw_raster) <- CRS("+init=EPSG:3414")
+kde_originsSG_bw_raster
+```
+## Visualising KDE (tmap)
+
+
+
