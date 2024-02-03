@@ -3,6 +3,7 @@ title: "Take Home Exercise 1: Application of Spatial Point Patterns Analysis"
 
 execute:
   warning: false
+  
 output:
   html_document:
     toc: true
@@ -38,8 +39,10 @@ For this exercise, I will be using the following packages:
 
 -   readr (for saving transformed data sets as rds)
 
+-   spNetwork
+
 ```{r}
-pacman::p_load(sf, tidyverse, tmap, spatstat, maptools, raster, arrow, lubridate, readr)
+pacman::p_load(sf, tidyverse, tmap, spatstat, maptools, raster, arrow, lubridate, readr, spNetwork)
 ```
 
 # Data Import and initial data transformation
@@ -67,6 +70,7 @@ df9 <- read_parquet(file="data/aspatial/GrabPosisi/part-00009.parquet")
 ```
 
 #### Combining the data
+
 All of the data covers 2 weeks of Grab rides, but they are jumbled up. In order to accurately extract the origin and destination points, we need to combine everything into a singular data frame.
 
 ```{r}
@@ -269,19 +273,7 @@ sg_roads <- read_rds("data/rds/sgroads.rds")
 
 # Data wrangling: origins
 
-## Analysis of origins
-
-First, lets look at the distribution of origins over time using `ggplot`.
-
-```{r}
-ggplot(data = origin_all_df,
-       aes(x=weekday)) +
-geom_bar()
-```
-
-As seen above, the data is evenly distributed across all days of the week.
-
-### ppp object transformation
+## ppp object transformation
 
 In order to conduct Kernel Density Estimation (KDE), we need to transform our layers into a ppp object. Before we begin that process, we will need to transform `origin_all_df` into an sf object using *st_as_sf()*.
 
@@ -306,7 +298,7 @@ origin_ppp <- as(origin_sp, "ppp")
 summary(origin_ppp)
 ```
 
-### Duplicate data handling
+## Duplicate data handling
 
 Now, we need to check for duplicated data.
 
@@ -322,13 +314,13 @@ sum(multiplicity(origin_ppp) > 1)
 
 As we can see, there is no duplicate data in the ppp object.
 
-### Creating owin object
+## Creating owin object
 
 Next, we need to confine the analysis with a geographical area like Singapore boundary. If a study area is not defined and confined, the data points will assume it can occur within blank spaces (because technically it will spread out at random).
 
 ```{r}
-CoastalOutline <- st_union(CoastalOutline)
-sg_owin <- as.owin(CoastalOutline)
+CoastalOutlineSG <- st_union(CoastalOutline)
+sg_owin <- as.owin(CoastalOutlineSG)
 plot(sg_owin)
 ```
 
@@ -357,6 +349,7 @@ originSG_km <- rescale(originSG, 1000, "km")
 ## Working with different automatic bandwidth selection methods
 
 There are 4 different automatic bandwidth selection method that we can choose: *bw.diggle, bw.CvL, bw.scott* and *bw.ppl*. For this exercise, we are using *bw.diggle*, or the radius selection method. We can plot all four to see which may give us better results.
+
 ```{r}
 kde_origins_dig <- density(originSG_km,
                               sigma=bw.diggle,
@@ -388,6 +381,8 @@ plot(kde_origins_scott, main = "bw.scott")
 We can retrieve the bandwidth used to compute the KDE layer as well.
 
 ```{r}
+#| eval: false
+
 bw.diggle(originSG)
 bw.ppl(originSG)
 bw.CvL(originSG)
@@ -426,14 +421,18 @@ plot(density(originSG_km,
              kernel="disc"), 
      main="Disc")
 ```
+
 For this exercise, disc and quartic appear to provide us with tighter values. Hence, we will be using Disc.
 
-# Fixed and Adaptive KDE bandwidths
+## Fixed and Adaptive KDE bandwidths
+
 For a fixed bandwidth, we will be fixing the radius at 600m.
+
 ```{r}
 kde_originSG_600 <- density(originSG_km, sigma=0.6, edge=TRUE, kernel="disc")
 plot(kde_originSG_600)
 ```
+
 Typically, a fixed bandwidth method is very sensitive to highly skewed distribution of spatial point patterns over geographical units. To get around this, we can use an adaptive bandwidth instead.
 
 ```{r}
@@ -449,23 +448,533 @@ plot(kde_originSG_600, main = "Fixed bandwidth")
 plot(kde_originSG_adaptive, main = "Adaptive bandwidth")
 ```
 
-## Conversion to raster via grid object
+### Conversion to raster via grid object
+
 In order to fully visualise KDE in tmap, we would need to transform it into raster data. Before that, we need to convert it into a grid object
 
 ```{r}
 gridded_kde_origins_bw <- as.SpatialGridDataFrame.im(kde_originSG_600)
 spplot(gridded_kde_origins_bw)
 ```
+
 Now, we can convert it to raster data.
+
 ```{r}
 kde_originsSG_bw_raster <- raster(gridded_kde_origins_bw)
 ```
+
 Note that there is no CRS to this data, so we will need to assign it on our own
+
 ```{r}
 projection(kde_originsSG_bw_raster) <- CRS("+init=EPSG:3414")
 kde_originsSG_bw_raster
 ```
+
 ## Visualising KDE (tmap)
 
+```{r}
+tm_shape(kde_originsSG_bw_raster) + 
+  tm_raster("v") +
+  tm_layout(legend.position = c("right", "bottom"), frame = FALSE)
+```
 
+## Spatial pattern observations
 
+From the raster map of the island, we can make the following observations.
+
+-   There are 5 major clusters where Grab drivers begin their trips from
+
+-   The cluster with the most observations is located in the east, spread across Tampines and Changi planning areas
+
+-   The cluster with the second most observations is located in the central area, largely covering the Downtown Core
+
+-   The other three clusters cover Jurong East and West, Choa Chu Kang, and Woodlands planning areas
+
+## Comparing Spatial Point patterns
+
+### Extracting study areas
+
+Having seen the traditional KDE of Grab origin points across, Singapore, we can identify the planning areas where hotspots are located and extract them for closer analysis.
+
+Based on the raster data, I will be extracting the following planning areas:
+
+-   CHANGI
+
+-   TAMPINES
+
+-   DOWNTOWN CORE
+
+-   WOODLANDS
+
+Note that to do this, we do need `CoastalOutline` layer to be a SpatialObject first.
+
+```{r}
+cc = CoastalOutline[CoastalOutline$PLN_AREA_N == "CHOA CHU KANG",]
+dt = CoastalOutline[CoastalOutline$PLN_AREA_N == "DOWNTOWN CORE",]
+wl = CoastalOutline[CoastalOutline$PLN_AREA_N == "WOODLANDS",]
+tp = CoastalOutline[CoastalOutline$PLN_AREA_N == "TAMPINES",]
+```
+
+Next, we can convert these objects into owin objects via the same process as before
+
+```{r}
+cc_spa <- as_Spatial(cc)
+tp_spa <- as_Spatial(tp)
+wl_spa <- as_Spatial(wl)
+dt_spa <- as_Spatial(dt)
+
+cc_sp = as(cc_spa, "SpatialPolygons")
+tp_sp = as(tp_spa, "SpatialPolygons")
+wl_sp = as(wl_spa, "SpatialPolygons")
+dt_sp = as(dt_spa, "SpatialPolygons")
+
+cc_owin = as(cc_sp, "owin")
+tp_owin = as(tp_sp, "owin")
+wl_owin = as(wl_sp, "owin")
+dt_owin = as(dt_sp, "owin")
+```
+
+Following this, we combine it to the `origin_ppp` layer to extract relevant Grab data.
+
+```{r}
+origins_cc_owin = origin_ppp[cc_owin]
+origins_tp_owin = origin_ppp[tp_owin]
+origins_wl_owin = origin_ppp[wl_owin]
+origins_dt_owin = origin_ppp[dt_owin]
+```
+
+Next, rescale() function is used to trasnform the unit of measurement from metre to kilometre
+
+```{r}
+origins_cc_owin_km = rescale(origins_cc_owin, 1000, "km")
+origins_tp_owin_km = rescale(origins_tp_owin, 1000, "km")
+origins_wl_owin_km = rescale(origins_wl_owin, 1000, "km")
+origins_dt_owin_km = rescale(origins_dt_owin, 1000, "km")
+```
+
+We can now plot the four study areas again to see the spatial distribution of Grab origin points.
+
+```{r}
+par(mfrow=c(2,2))
+plot(origins_cc_owin_km, main="Choa Chu Kang")
+plot(origins_tp_owin_km, main="Tampines")
+plot(origins_wl_owin_km, main="Woodlands")
+plot(origins_dt_owin_km, main="Downtown Core")
+```
+
+## Analysing study areas
+
+Now, we can compute the KDE of each planning areas using the methods we used for the entirety of Singapore.
+
+Note that we are using bw.scott for this instead of bw.diggle.
+
+```{r}
+#| code-fold: True
+
+par(mfrow=c(2,2))
+plot(density(origins_cc_owin_km, 
+             sigma=bw.scott, 
+             edge=TRUE, 
+             kernel="gaussian"),
+     main="Choa Chu Kang")
+
+plot(density(origins_tp_owin_km, 
+             sigma=bw.scott, 
+             edge=TRUE, 
+             kernel="gaussian"),
+     main="Tampines")
+
+plot(density(origins_wl_owin_km, 
+             sigma=bw.scott, 
+             edge=TRUE, 
+             kernel="gaussian"),
+     main="Woodlands")
+
+plot(density(origins_dt_owin_km, 
+             sigma=bw.scott, 
+             edge=TRUE, 
+             kernel="gaussian"),
+     main="Downtown Core")
+```
+
+We can also compute the fixed bandwidth for these planning areas. For this we will be using a tighter bandwidth of 300m, or half of the previously used bandwidth.
+
+```{r}
+par(mfrow=c(2,2))
+plot(density(origins_cc_owin_km, 
+             sigma=0.3, 
+             edge=TRUE, 
+             kernel="gaussian"),
+     main="Choa Chu Kang")
+
+plot(density(origins_tp_owin_km, 
+             sigma=0.3, 
+             edge=TRUE, 
+             kernel="gaussian"),
+     main="Tampines")
+
+plot(density(origins_wl_owin_km, 
+             sigma=0.3, 
+             edge=TRUE, 
+             kernel="gaussian"),
+     main="Woodlands")
+
+plot(density(origins_dt_owin_km, 
+             sigma=0.3, 
+             edge=TRUE, 
+             kernel="gaussian"),
+     main="Downtown Core")
+```
+
+## Confirmatory analysis: Nearest Neighbour
+
+One way that we can analyse and describe the distribution of spatial point patterns is via the Nearest Neighbour analysis using *clarkevans.test()* of statspat.
+
+For this to work, we will be using the following hypothesis:
+
+Ho = The distribution of Grab ride origins are randomly distributed.
+
+H1= The distribution of Grab ride origins are not randomly distributed.
+
+The 95% confident interval will be used.
+
+### Clark and Evans Test: whole island
+
+```{r}
+clarkevans.test(originSG,
+                correction="none",
+                clipregion="sg_owin",
+                alternative=c("clustered"),
+                nsim=99)
+```
+
+::: callout-note
+Because p-value \< 0.05, we reject H0. This means that the data is not randomly distributed spatially.
+:::
+
+### Clark and Evans Test: Choa Chu Kang
+
+```{r}
+clarkevans.test(origins_cc_owin,
+                correction="none",
+                clipregion="sg_owin",
+                alternative=c("clustered"),
+                nsim=99)
+```
+
+::: callout-note
+Because p-value \< 0.05, we reject H0. This means that the data is not randomly distributed spatially.
+:::
+
+### Clark and Evans Test: Tampines
+
+```{r}
+clarkevans.test(origins_tp_owin,
+                correction="none",
+                clipregion="sg_owin",
+                alternative=c("clustered"),
+                nsim=99)
+```
+
+::: callout-note
+Because p-value \< 0.05, we reject H0. This means that the data is not randomly distributed spatially.
+:::
+
+### Clark and Evans Test: Woodlands
+
+```{r}
+clarkevans.test(origins_wl_owin,
+                correction="none",
+                clipregion="sg_owin",
+                alternative=c("clustered"),
+                nsim=99)
+```
+
+::: callout-note
+Because p-value \< 0.05, we reject H0. This means that the data is not randomly distributed spatially.
+:::
+
+### Clark and Evans Test: Downtown Core
+
+```{r}
+clarkevans.test(origins_dt_owin,
+                correction="none",
+                clipregion="sg_owin",
+                alternative=c("clustered"),
+                nsim=99)
+```
+
+::: callout-note
+Because p-value \< 0.05, we reject H0. This means that the data is not randomly distributed spatially.
+:::
+
+# Network Kernel Density Estimation: origins
+
+## Data wrangling
+
+In order to conduct Network Kernel Density Estimation (NKDE), we will need a road network. For this section, we will be doing this analysis by planning area.
+
+Firstly, we should clean up the data before extracting according to planning area. According to the document that is attached to the data from OpenStreetMap, some of the roads labelled are not roads that cars can travel on, such as pedestrian walkways. We will need to filter out the following classes from the `fclass` column:
+
+-   pedestrian
+
+-   busway
+
+-   bridleway
+
+-   cycleway
+
+-   footway
+
+-   path
+
+-   steps
+
+```{r}
+sg_roads_clean <- sg_roads %>%
+              filter(fclass !="pedestrian") %>%
+              filter(fclass !="busway") %>%
+              filter(fclass !="bridleway") %>%
+              filter(fclass !="cycleway") %>%
+              filter(fclass !="footway") %>%
+              filter(fclass !="path") %>%
+              filter(fclass !="steps")
+```
+
+Next, we can extract the roads for each planning area.
+
+```{r}
+road_cc <- st_intersection(sg_roads_clean, cc)
+road_tp <- st_intersection(sg_roads_clean, tp)
+road_wl <- st_intersection(sg_roads_clean, wl)
+road_dt <- st_intersection(sg_roads_clean, dt)
+```
+
+```{r}
+road_cc
+```
+
+Note how it is geometry type geometry and not a linestring. We can convert them with the following code chunk:
+
+```{r}
+road_cc <- road_cc %>%
+  st_cast("LINESTRING")
+
+road_tp <- road_tp %>%
+  st_cast("LINESTRING")
+
+road_wl <- road_wl %>%
+  st_cast("LINESTRING")
+
+road_dt <- road_dt %>%
+  st_cast("LINESTRING")
+```
+
+Finally, in order to plot the points onto a map, we will need to extract the Grab origin points separately.
+
+```{r}
+origin_cc <- st_intersection(origins_sf, cc)
+origin_tp <- st_intersection(origins_sf, tp)
+origin_wl <- st_intersection(origins_sf, wl)
+origin_dt <- st_intersection(origins_sf, dt)
+```
+
+We can now plot this on a map together with the owin containing all events within the subzone. Below is an example using Tampines planning area.
+
+```{r}
+tmap_mode('view')
+tm_shape(origin_tp)+
+  tm_dots() +
+  tm_shape(road_tp) +
+  tm_lines()
+
+tmap_mode('plot')
+```
+
+We can also plot the individual network.
+
+```{r}
+plot(road_tp["fclass"])
+```
+
+## Preparing lixels object
+
+To conduct NKDE, we will need to convert the road network into a lixels object. To do this, we first need to segment the lines in a network.
+
+::: callout-note
+Why use 750m? Based off a study by NUS that the maximum walking distance people are willing to walk is 750m. Since we use 750m, the middle distance is 375m (half of the bandwidth).
+:::
+
+```{r}
+#|code-fold: True
+
+lixel_cc <- lixelize_lines(road_cc,
+                         750,
+                         mindist = 375)
+
+lixel_tp <- lixelize_lines(road_tp,
+                         750,
+                         mindist = 375)
+
+lixel_wl <- lixelize_lines(road_wl,
+                         750,
+                         mindist = 375)
+
+lixel_dt <- lixelize_lines(road_dt,
+                         750,
+                         mindist = 375)
+```
+
+## Generating line centre points
+
+Next, we generate the centroids of each line to ensure that they are consistent.
+
+```{r}
+centroid_cc <- lines_center(lixel_cc)
+centroid_tp <- lines_center(lixel_tp)
+centroid_wl <- lines_center(lixel_wl)
+centroid_dt <- lines_center(lixel_dt)
+```
+
+## Performing NKDE
+
+With both centroids and lixels, we can finally perform NKDE.
+
+```{r}
+#| code-fold: true
+
+density_cc <- nkde(road_cc, 
+                  events = origin_cc,
+                  w = rep(1,nrow(origin_cc)),
+                  samples = centroid_cc,
+                  kernel_name = "quartic", 
+                  bw = 300,
+                  div= "bw", 
+                  method = "simple", 
+                  digits = 1, 
+                  tol = 1,
+                  grid_shape = c(1,1), 
+                  max_depth = 8,
+                  agg = 5, #we aggregate events within a 5m radius (faster calculation)
+                  sparse = TRUE,
+                  verbose = FALSE)
+
+density_tp <- nkde(road_tp, 
+                  events = origin_tp,
+                  w = rep(1,nrow(origin_tp)),
+                  samples = centroid_tp,
+                  kernel_name = "quartic", 
+                  bw = 300,
+                  div= "bw", 
+                  method = "simple", 
+                  digits = 1, 
+                  tol = 1,
+                  grid_shape = c(1,1), 
+                  max_depth = 8,
+                  agg = 5, #we aggregate events within a 5m radius (faster calculation)
+                  sparse = TRUE,
+                  verbose = FALSE)
+
+density_wl <- nkde(road_wl, 
+                  events = origin_wl,
+                  w = rep(1,nrow(origin_wl)),
+                  samples = centroid_wl,
+                  kernel_name = "quartic", 
+                  bw = 300,
+                  div= "bw", 
+                  method = "simple", 
+                  digits = 1, 
+                  tol = 1,
+                  grid_shape = c(1,1), 
+                  max_depth = 8,
+                  agg = 5, #we aggregate events within a 5m radius (faster calculation)
+                  sparse = TRUE,
+                  verbose = FALSE)
+
+density_dt <- nkde(road_dt, 
+                  events = origin_dt,
+                  w = rep(1,nrow(origin_dt)),
+                  samples = centroid_dt,
+                  kernel_name = "quartic", 
+                  bw = 300,
+                  div= "bw", 
+                  method = "simple", 
+                  digits = 1, 
+                  tol = 1,
+                  grid_shape = c(1,1), 
+                  max_depth = 8,
+                  agg = 5, #we aggregate events within a 5m radius (faster calculation)
+                  sparse = TRUE,
+                  verbose = FALSE)
+```
+
+## Visualising NKDE
+
+Before we can visualise the NetKDE values, code chunk below will be used to insert the computed density values (i.e. densities) into samples and lixels objects as density field.
+
+```{r}
+#| code-fold: true
+
+centroid_cc$density <- density_cc
+lixel_cc$density <- density_cc
+
+centroid_tp$density <- density_tp
+lixel_tp$density <- density_tp
+
+centroid_wl$density <- density_wl
+lixel_wl$density <- density_wl
+
+centroid_dt$density <- density_dt
+lixel_dt$density <- density_dt
+```
+
+Next, because svy21 is in meters, we will need to convert the numbers to kilometers to avoid small numbers.
+
+```{r}
+# rescaling to help the mapping
+centroid_cc$density <- centroid_cc$density*1000
+lixel_cc$density <- lixel_cc$density*1000
+
+centroid_tp$density <- centroid_tp$density*1000
+lixel_tp$density <- lixel_tp$density*1000
+
+centroid_wl$density <- centroid_wl$density*1000
+lixel_wl$density <- lixel_wl$density*1000
+
+centroid_dt$density <- centroid_dt$density*1000
+lixel_dt$density <- lixel_dt$density*1000
+```
+
+Now, we can visualise the network. For the sake of being able to see the road network, I will not be plotting the point data.
+
+```{r}
+tmap_mode('view')
+tm_shape(lixel_cc)+
+  tm_lines(col="density")
+
+tmap_mode('plot')
+```
+
+```{r}
+tmap_mode('view')
+tm_shape(lixel_tp)+
+  tm_lines(col="density")
+
+tmap_mode('plot')
+```
+
+```{r}
+tmap_mode('view')
+tm_shape(lixel_wl)+
+  tm_lines(col="density")
+
+tmap_mode('plot')
+```
+
+```{r}
+tmap_mode('view')
+tm_shape(lixel_dt)+
+  tm_lines(col="density")
+
+tmap_mode('plot')
+```
