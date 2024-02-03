@@ -159,5 +159,12 @@
     "title": "Take Home Exercise 1: Application of Spatial Point Patterns Analysis",
     "section": "Visualising NKDE",
     "text": "Visualising NKDE\nBefore we can visualise the NetKDE values, code chunk below will be used to insert the computed density values (i.e. densities) into samples and lixels objects as density field.\n\n\nCode\ncentroid_cc$density <- density_cc\nlixel_cc$density <- density_cc\n\ncentroid_tp$density <- density_tp\nlixel_tp$density <- density_tp\n\ncentroid_wl$density <- density_wl\nlixel_wl$density <- density_wl\n\ncentroid_dt$density <- density_dt\nlixel_dt$density <- density_dt\n\n\nNext, because svy21 is in meters, we will need to convert the numbers to kilometers to avoid small numbers.\n\n# rescaling to help the mapping\ncentroid_cc$density <- centroid_cc$density*1000\nlixel_cc$density <- lixel_cc$density*1000\n\ncentroid_tp$density <- centroid_tp$density*1000\nlixel_tp$density <- lixel_tp$density*1000\n\ncentroid_wl$density <- centroid_wl$density*1000\nlixel_wl$density <- lixel_wl$density*1000\n\ncentroid_dt$density <- centroid_dt$density*1000\nlixel_dt$density <- lixel_dt$density*1000\n\nNow, we can visualise the network. For the sake of being able to see the road network, I will not be plotting the point data.\n\ntmap_mode('view')\ntm_shape(lixel_cc)+\n  tm_lines(col=\"density\")\n\n\n\n\n\ntmap_mode('plot')\n\n\ntmap_mode('view')\ntm_shape(lixel_tp)+\n  tm_lines(col=\"density\")\n\n\n\n\n\ntmap_mode('plot')\n\n\ntmap_mode('view')\ntm_shape(lixel_wl)+\n  tm_lines(col=\"density\")\n\n\n\n\n\ntmap_mode('plot')\n\n\ntmap_mode('view')\ntm_shape(lixel_dt)+\n  tm_lines(col=\"density\")\n\n\n\n\n\ntmap_mode('plot')"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "IS415-GAA-2024",
+    "section": "",
+    "text": "This is the course website of IS415 I study this term. You will find my course work on this website."
   }
 ]
