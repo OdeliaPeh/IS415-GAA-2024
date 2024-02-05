@@ -5,3 +5,121 @@ execute:
   warning: false
 date: "`r Sys.Date()`"
 ---
+
+# R packages
+
+```{r}
+pacman::p_load(sf, tidyverse, sfdep, tmap)
+```
+
+::: callout-note
+Instead of using spdep, we are now using sfdep, which is the new version of spdep. sfdep is an sf version of spdep, able to read the sf layer and skipping the conversion of sf objects to ppp objects.
+:::
+
+# Data Import and Wrangling
+
+## Geospatial
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", 
+                 layer = "Hunan")
+```
+
+::: callout-note
+Check whether the bounding box is in decimal degrees or not. If it is in decimal degrees it is in geodetic crs and not projected crs.
+:::
+
+::: callout-note
+Make sure that the geometric type of the file is matched by all of the data points!
+:::
+
+## Aspatial
+
+```{r}
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+```
+
+::: callout-note
+Check carefully to ensure there is something that can be used to join the data frame to the geospatial data (eg. County) via identical data in columns
+:::
+
+## Relational join
+
+```{r}
+hunan_GDPPC <- left_join(hunan,hunan2012) %>%
+  select(1:4, 7, 15)
+```
+
+::: callout-note
+ALWAYS KEEP THE GEOMETRY DATA COLUMN
+:::
+
+::: callout-note
+Note that the type of file that is pointed to by the join will pass its file type down eg. left_join to a sata frame
+:::
+
+# Plot map
+
+```{r}
+tmap_mode('plot')
+  tm_shape(hunan_GDPPC) + 
+  tm_fill("GDPPC",
+          style = "quantile",
+          palette = "Blues",
+          title = "GDPPC") + 
+  tm_layout(main.title = "Distribution of GDP per capita",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45,
+            legend.width = 0.35,
+            frame = TRUE) +
+    tm_borders(alpha = 0.5) +
+    tm_compass(type = "8star", size = 2) + 
+    tm_scale_bar () + 
+    tm_grid (alpha = 0.2)
+  
+  tmap_mode("view")
+```
+
+# Creating contiguity weights
+
+sfdep allows for contiguity weights to be directly derived/mutated from `hunan_GDPPC` and saved as `wm_q` sf tibblr.
+
+```{r}
+wm_q <- hunan_GDPPC %>%
+  mutate( nb = st_contiguity(geometry),
+          wt = st_weights(nb, style= 'W'),
+          .before = 1)
+```
+
+::: callout-note
+.before = 1 means to insert before the original column 1
+:::
+
+# Compute Moran I
+
+This is not very important, because we dont know the confidence of p-value.
+
+```{r}
+#| eval: false
+
+moranI <- global_moran(wm_q$GDPPC,
+                       wm_q$nb,
+                       wm_q$wt)
+
+glimpse(moranI)
+```
+
+Instead, we want the **permutation test**, which involves simulation. Most of the time, we only need to calculate the Global Moran I Permutation so we have more iterations to backup the analysis and confirm the representativeness of the dataset.
+
+```{r}
+global_moran_perm(wm_q$GDPPC,
+                  wm_q$nb,
+                  wm_q$wt,
+                  nsim = 99)
+```
+
+
+
+
+
