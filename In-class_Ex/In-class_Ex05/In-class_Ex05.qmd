@@ -119,7 +119,4 @@ global_moran_perm(wm_q$GDPPC,
                   nsim = 99)
 ```
 
-
-
-
-
+Complete in class 5 on our own + watch video for hot spot and cold spot
