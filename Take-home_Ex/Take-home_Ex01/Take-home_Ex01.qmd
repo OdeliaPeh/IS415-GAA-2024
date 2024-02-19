@@ -3,6 +3,7 @@ title: "Take Home Exercise 1: Application of Spatial Point Patterns Analysis"
 
 execute:
   warning: false
+  freeze: true
   
 output:
   html_document:
