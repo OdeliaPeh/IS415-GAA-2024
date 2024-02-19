@@ -3,6 +3,7 @@ title: "Hands-on Exercise 3: Spatial Point Patterns Analysis Methods"
 
 execute:
   warning: false
+  freeze: true
 date: "`r Sys.Date()`"
 ---
 
