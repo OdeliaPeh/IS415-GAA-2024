@@ -67,7 +67,7 @@ tmap_mode('plot')
           style = "quantile",
           palette = "Blues",
           title = "GDPPC") + 
-  tm_layout(main.title = "Distribution of GDP per capita",
+  tm_layout(main.title = "Distribution of GDP per capita by county, Hunan Province",
             main.title.position = "center",
             main.title.size = 1.2,
             legend.height = 0.45,
@@ -93,12 +93,20 @@ wm_q <- hunan_GDPPC %>%
 ```
 
 ::: callout-note
-.before = 1 means to insert before the original column 1
+.before = 1 means to insert before the original column 1, and the object saves as a data table.
 :::
+
+Note that `st_weights` provides tree arguments
+
+-   nb: a neighbour list object
+
+-   style: default 'W' for row standardized weights. This value can also be 'B', 'C', 'U', 'minmax' and 'S'. B is basic binary coding, W is row standardised, C is globally standardised, U is equal to C divided by the number of neighbours, S is the variance stabilizinging coding scheme.
+
+-   allow_zero: if TRUE, assings zero as lagged value to zone without neighbours
 
 # Compute Moran I
 
-This is not very important, because we dont know the confidence of p-value.
+This is not very important, because we dont know the confidence of p-value., without test statistics
 
 ```{r}
 #| eval: false
@@ -110,7 +118,17 @@ moranI <- global_moran(wm_q$GDPPC,
 glimpse(moranI)
 ```
 
+## Compute global Moran's I permutation test
+
+To confirm statistical significance, we need to conduct Moral testing (receive p value. to reect or accept the hypothesis)
+
 Instead, we want the **permutation test**, which involves simulation. Most of the time, we only need to calculate the Global Moran I Permutation so we have more iterations to backup the analysis and confirm the representativeness of the dataset.
+
+We can also `set.seed()` before performing the simulation to ensure the computation is reproducible.
+
+```{r}
+set.seed(1234)
+```
 
 ```{r}
 global_moran_perm(wm_q$GDPPC,
@@ -118,5 +136,7 @@ global_moran_perm(wm_q$GDPPC,
                   wm_q$wt,
                   nsim = 99)
 ```
+
+Reject null hypothesis, hence you can INFER that there is clustering. This method is most convincing overall.
 
 Complete in class 5 on our own + watch video for hot spot and cold spot
