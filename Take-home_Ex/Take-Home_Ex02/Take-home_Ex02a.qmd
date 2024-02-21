@@ -1,0 +1,8 @@
+---
+title: "Take-home Exercise 2: Data Management"
+
+execute:
+  warning: false
+  freeze: false
+date: "`r Sys.Date()`"
+---

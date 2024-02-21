@@ -263,7 +263,7 @@
     "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html",
     "title": "In-class Exercise 5",
     "section": "",
-    "text": "pacman::p_load(sf, tidyverse, sfdep, tmap)\n\n\n\n\n\n\n\nNote\n\n\n\nInstead of using spdep, we are now using sfdep, which is the new version of spdep. sfdep is an sf version of spdep, able to read the sf layer and skipping the conversion of sf objects to ppp objects."
+    "text": "pacman::p_load(sf, tidyverse, sfdep, tmap, plotly, Kendall)\n\n\n\n\n\n\n\nNote\n\n\n\nInstead of using spdep, we are now using sfdep, which is the new version of spdep. sfdep is an sf version of spdep, able to read the sf layer and skipping the conversion of sf objects to ppp objects."
   },
   {
     "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#geospatial",
@@ -474,5 +474,33 @@
     "title": "Hands-on Exercise 3: Spatial Point Patterns Analysis Methods",
     "section": "Analysing Spatial Point Process Using L-Function",
     "text": "Analysing Spatial Point Process Using L-Function\nIn this section, you will learn how to compute L-function estimation by using Lest() of spatstat package. You will also learn how to perform monta carlo simulation test using envelope() of spatstat package.\n\nChoa Chu Kang Planning Area\n\nComputing L Fucntion estimation\n\nL_ck = Lest(childcare_ck_ppp, correction = \"Ripley\")\nplot(L_ck, . -r ~ r, \n     ylab= \"L(d)-r\", xlab = \"d(m)\")\n\n\n\n\n\n\nComplete Spatial Randomness test\nTo confirm the observed spatial patterns above, a hypothesis test will be conducted. The hypothesis and test are as follows:\nHo = The distribution of childcare services at Choa Chu Kang are randomly distributed.\nH1= The distribution of childcare services at Choa Chu Kang are not randomly distributed.\nThe null hypothesis will be rejected if p-value if smaller than alpha value of 0.001.\nThe code chunk below is used to perform the hypothesis testing.\n\nL_ck.csr <- envelope(childcare_ck_ppp, Lest, nsim = 99, rank = 1, glocal=TRUE)\n\nGenerating 99 simulations of CSR  ...\n1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,\n21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,\n41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,\n61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,\n81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, \n99.\n\nDone.\n\n\n\nplot(L_ck.csr, . - r ~ r, xlab=\"d\", ylab=\"L(d)-r\")\n\n\n\n\n\n\n\nTampines planning area\n\nComputing L-function estimate\n\nL_tm = Lest(childcare_tm_ppp, correction = \"Ripley\")\nplot(L_tm, . -r ~ r, \n     ylab= \"L(d)-r\", xlab = \"d(m)\", \n     xlim=c(0,1000))\n\n\n\n\n\n\nComplete Spatial Randomness testing\nTo confirm the observed spatial patterns above, a hypothesis test will be conducted. The hypothesis and test are as follows:\nHo = The distribution of childcare services at Tampines are randomly distributed.\nH1= The distribution of childcare services at Tampines are not randomly distributed.\nThe null hypothesis will be rejected if p-value is smaller than alpha value of 0.001.\nThe code chunk below will be used to perform the hypothesis testing.\n\nL_tm.csr <- envelope(childcare_tm_ppp, Lest, nsim = 99, rank = 1, glocal=TRUE)\n\nGenerating 99 simulations of CSR  ...\n1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,\n21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,\n41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,\n61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,\n81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, \n99.\n\nDone.\n\n\n\nplot(L_tm.csr, . - r ~ r, \n     xlab=\"d\", ylab=\"L(d)-r\", xlim=c(0,500))"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#compute-global-morans-i-permutation-test",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#compute-global-morans-i-permutation-test",
+    "title": "In-class Exercise 5",
+    "section": "Compute global Moran’s I permutation test",
+    "text": "Compute global Moran’s I permutation test\nTo confirm statistical significance, we need to conduct Moral testing (receive p value. to reect or accept the hypothesis)\nInstead, we want the permutation test, which involves simulation. Most of the time, we only need to calculate the Global Moran I Permutation so we have more iterations to backup the analysis and confirm the representativeness of the dataset.\nWe can also set.seed() before performing the simulation to ensure the computation is reproducible.\n\nset.seed(1234)\n\n\nglobal_moran_perm(wm_q$GDPPC,\n                  wm_q$nb,\n                  wm_q$wt,\n                  nsim = 99)\n\n\n    Monte-Carlo simulation of Moran I\n\ndata:  x \nweights: listw  \nnumber of simulations + 1: 100 \n\nstatistic = 0.30075, observed rank = 100, p-value < 2.2e-16\nalternative hypothesis: two.sided\n\n\nReject null hypothesis, hence you can INFER that there is clustering (also because the statistic is more than 0). This method is most convincing overall.\nNow, we want to know if it is a hot/cold spot, and whether or not it is an outlier in the data."
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#local-gi-statistics",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#local-gi-statistics",
+    "title": "In-class Exercise 5",
+    "section": "Local Gi* statistics",
+    "text": "Local Gi* statistics\nSpecially calibrated to detect hot and cold spots. Gi statistic is also a distance based method.\nWe provide weights, and using inverse distance there is more weight given to neighbours that are closer based on distance.\n\nwm_idw <- hunan_GDPPC %>%\n  mutate(nb = st_contiguity(geometry),\n         wts = st_inverse_distance(nb, geometry,\n                                   scale = 1,\n                                   alpha = 1),\n         .before = 1)\n\n\n\n\n\n\n\nNote\n\n\n\nThe scale is there to convert the distance. 1 allows us to convert it to km"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#creating-time-series-cube",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#creating-time-series-cube",
+    "title": "In-class Exercise 5",
+    "section": "Creating Time Series Cube",
+    "text": "Creating Time Series Cube\nUsing the function spacetime to create a cube where the height represents the time, and each cube inside represents a geographic area.\n\nGDPPC_st <- spacetime(GDPPC, hunan,\n                      .loc_col = \"County\",\n                      .time_col = \"Year\")\n\n\nis_spacetime_cube(GDPPC_st)\n\n[1] TRUE\n\n\n\nDeriving spatial weights\n\nGDPPC_nb <- GDPPC_st %>%\n  activate(\"geometry\")  %>% #only pulls out the geometry layer\n  mutate(nb = include_self(st_contiguity(geometry)),\n         wt = st_inverse_distance(nb, geometry,\n                                  scale = 1,\n                                  alpha = 1),\n         .before = 1) %>%\n  set_nbs(\"nb\") %>%\n  set_wts(\"wt\")\n\nNote that this dataset now has neighbors and weights for each time-slice.\n\nhead(GDPPC_nb)\n\n# A tibble: 6 × 5\n   Year County  GDPPC nb        wt       \n  <dbl> <chr>   <dbl> <list>    <list>   \n1  2005 Anxiang  8184 <int [6]> <dbl [6]>\n2  2005 Hanshou  6560 <int [6]> <dbl [6]>\n3  2005 Jinshi   9956 <int [5]> <dbl [5]>\n4  2005 Li       8394 <int [5]> <dbl [5]>\n5  2005 Linli    8850 <int [5]> <dbl [5]>\n6  2005 Shimen   9244 <int [6]> <dbl [6]>\n\n\n\ngi_stars <- GDPPC_nb %>% \n  group_by(Year) %>% \n  mutate(gi_star = local_gstar_perm(\n    GDPPC, nb, wt)) %>% \n  tidyr::unnest(gi_star)"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex02/data/geospatial/TAINAN_VILLAGE.html",
+    "href": "Take-home_Ex/Take-Home_Ex02/data/geospatial/TAINAN_VILLAGE.html",
+    "title": "IS415-GAA-2024",
+    "section": "",
+    "text": "<!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’>"
   }
 ]

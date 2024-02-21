@@ -37,13 +37,16 @@ website:
             href: "In-class_Ex/In-class_Ex04/In-class_Ex04.html"
           - text: "In-class Exercise 5"
             href: "In-class_Ex/In-class_Ex05/In-class_Ex05.html"
-          - text: "In-class Exercise 7"
-            href: "In-class_Ex/In-class_Ex07/In-class_Ex07.html"
+
 
       - text: "Take Home Exercises"
         menu: 
           - text: "Take Home Exercise 1"
             href: "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html"
+          - text: "Take Home Exercise 2: Data Management"
+            href: "Take-home_Ex/Take-home_Ex02/Take-home_Ex02a.html"
+          - text: "Take Home Exercise 2: Report"
+            href: "Take-home_Ex/Take-home_Ex02/Take-home_Ex02b.html"
 
 format:
   html:
