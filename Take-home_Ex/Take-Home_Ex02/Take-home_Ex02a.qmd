@@ -6,3 +6,17 @@ execute:
   freeze: false
 date: "`r Sys.Date()`"
 ---
+
+# Project Objectives
+
+For this geospatial task, we have been tasked to discover:
+
+-   if the distribution of dengue fever outbreak at Tainan City, Taiwan are independent from space and space and time.
+
+-   If the outbreak is indeed spatial and spatio-temporal dependent, then, you would like to detect where are the clusters and outliers, and the emerging hot spot/cold spot areas.
+
+# Installing R packages
+
+```{r}
+pacman::p_load(tidyverse, sf, sfdep, tmap)
+```
