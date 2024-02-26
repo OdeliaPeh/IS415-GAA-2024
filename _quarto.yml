@@ -43,7 +43,7 @@ website:
         menu: 
           - text: "Take Home Exercise 1"
             href: "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html"
-          - text: "Take Home Exercise 2: Data Management"
+          - text: "Take Home Exercise 2: Technical Guide"
             href: "Take-home_Ex/Take-home_Ex02/Take-home_Ex02a.html"
           - text: "Take Home Exercise 2: Report"
             href: "Take-home_Ex/Take-home_Ex02/Take-home_Ex02b.html"

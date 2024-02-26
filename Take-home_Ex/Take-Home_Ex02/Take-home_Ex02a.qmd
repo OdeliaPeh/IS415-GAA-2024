@@ -1,5 +1,5 @@
 ---
-title: "Take-home Exercise 2: Data Management"
+title: "Take-home Exercise 2: Technical Guide"
 
 execute:
   warning: false
@@ -17,6 +17,67 @@ For this geospatial task, we have been tasked to discover:
 
 # Installing R packages
 
+For the technical portion of the take home exercise, I will be using the following packages:
+
+-   tidyverse
+
+-   sf
+
+-   sfdep
+
+-   tmap
+
+-   readr
+
 ```{r}
-pacman::p_load(tidyverse, sf, sfdep, tmap)
+pacman::p_load(tidyverse, sf, sfdep, tmap, readr)
+```
+
+# Data import
+
+## Geospatial data
+
+For geospatial data, using *st_read()*, I will import the geospatial data file `TAINAN_VILLAGE`.
+
+```{r}
+tainan <- st_read(dsn = "data/geospatial", 
+                layer = "TAINAN_VILLAGE")
+```
+
+::: callout-note
+The data is in Taiwan Geographic Coordinate System, TWD97. This should be kept unchanged to ensure that the data is as accurate as possible to the collected data.
+:::
+
+Now the map can be plotted so that we can see what we are working with, grouped by `TOWNID` column.
+
+```{r}
+plot(tainan["TOWNID"])
+```
+
+Now, I will be filtering out the study areas that this exercise focuses on, which consists of counties D01, D02, D04, D06, D07, D08, D32 and D39. This will make the later parts of data cleaning faster due to having less to process.
+
+From inspecting the data table of `tainan`, it can be seen that the counties data is found in the **TOWNID** column, so I will be filtering them from there.
+
+```{r}
+study_area <- tainan %>%
+              filter(TOWNID == "D01" | TOWNID == "D02" | TOWNID == "D04" |
+                       TOWNID == "D06" | TOWNID == "D07" | TOWNID == "D08" |
+                       TOWNID == "D32" | TOWNID == "D39")
+
+
+plot(study_area["TOWNID"])
+```
+
+With this done, we can save the data in the rds format to allow for faster data retrieval.
+
+```{r}
+write_rds(study_area, "data/rds/tainan_study.rds")
+```
+
+## Aspatial data
+
+For aspatial data, I will be using *read_csv()* to import the csv file `Dengue_Daily`
+
+```{r}
+disease_data <- read_csv("data/aspatial/Dengue_Daily.csv")
 ```
