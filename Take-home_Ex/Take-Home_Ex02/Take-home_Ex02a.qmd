@@ -33,14 +33,16 @@ For the technical portion of the take home exercise, I will be using the followi
 pacman::p_load(tidyverse, sf, sfdep, tmap, readr)
 ```
 
-# Data import
+# Data import and cleaning
 
 ## Geospatial data
 
-For geospatial data, using *st_read()*, I will import the geospatial data file `TAINAN_VILLAGE`.
+For geospatial data, using *st_read()*, I will import the geospatial data file `TAINAN_VILLAGE`, which contains the geospatial data of village boundary of Taiwan.
 
 ```{r}
-tainan <- st_read(dsn = "data/geospatial", 
+#| eval: false
+
+taiwan <- st_read(dsn = "data/geospatial", 
                 layer = "TAINAN_VILLAGE")
 ```
 
@@ -51,15 +53,37 @@ The data is in Taiwan Geographic Coordinate System, TWD97. This should be kept u
 Now the map can be plotted so that we can see what we are working with, grouped by `TOWNID` column.
 
 ```{r}
-plot(tainan["TOWNID"])
+#| eval: false
+
+plot(taiwan["TOWNID"])
 ```
 
-Now, I will be filtering out the study areas that this exercise focuses on, which consists of counties D01, D02, D04, D06, D07, D08, D32 and D39. This will make the later parts of data cleaning faster due to having less to process.
+The geospatial data here is not limited to only the city of Tainan. To filter out Tainan City for the use of this exercise, I will filter for the following counties:
+
+-   D01
+
+-   D02
+
+-   D04
+
+-   D06
+
+-   D07
+
+-   D08
+
+-   D32
+
+-   D39
+
+This will make the later parts of data cleaning faster due to having less to process.
 
 From inspecting the data table of `tainan`, it can be seen that the counties data is found in the **TOWNID** column, so I will be filtering them from there.
 
 ```{r}
-study_area <- tainan %>%
+#| eval: false
+
+study_area <- taiwan %>%
               filter(TOWNID == "D01" | TOWNID == "D02" | TOWNID == "D04" |
                        TOWNID == "D06" | TOWNID == "D07" | TOWNID == "D08" |
                        TOWNID == "D32" | TOWNID == "D39")
@@ -68,16 +92,55 @@ study_area <- tainan %>%
 plot(study_area["TOWNID"])
 ```
 
-With this done, we can save the data in the rds format to allow for faster data retrieval.
+Now, we can check for any missing geospatial data from the desired study areas.
 
 ```{r}
+#| eval: false
+
+any(is.na(study_area$geometry))
+```
+
+With these checks done, we can save the data in the rds format to allow for faster data retrieval.
+
+```{r}
+#| eval: false
+
 write_rds(study_area, "data/rds/tainan_study.rds")
 ```
 
 ## Aspatial data
 
-For aspatial data, I will be using *read_csv()* to import the csv file `Dengue_Daily`
+For aspatial data, I will be using *read_csv()* to import the csv file `Dengue_Daily`, which contains the aspatial data of reported dengue cases in Taiwan.
 
 ```{r}
 disease_data <- read_csv("data/aspatial/Dengue_Daily.csv")
+```
+
+Again, the data is not limited to only the city of Tainan. Before cleaning, I inspected the data using the tab on the side (the data is large and difficult to examine using methods such as *head()*) and found that almost all of the data and all of the attribute columns are written in Simplified Chinese.
+
+Right now, I want to narrow the data to only reported cases within the city of Tainan. To do that, I will be using *filter()* to retrieve all data that are labelled as 台南市 in the attribute column `居住縣市`
+
+```{r}
+tainan_cases <- disease_data %>%
+              filter(居住縣市 == "台南市")
+```
+
+With this narrower list, we can look at the attribute columns. For this exercise, the most important ones are the following:
+
+| Attribute         | Translation  |
+|-------------------|--------------|
+| 發病日            | Onset date   |
+| 最小統計區中心點X | X-coordinate |
+| 最小統計區中心點Y | Y-coordinate |
+
+### Epidemiology week - research
+
+The exercise calls for the use of epidemiology weeks, but what are they?
+
+According to the Central Massachusetts Mosquito Control Project (CMMCP), epidemiological weeks are ["a standardized method of counting weeks to allow for the comparison of data year after year"](https://www.cmmcp.org/mosquito-surveillance-data/pages/epi-week-calendars-2008-2024). By default, Sunday is marked as the beginning of an epidemiology week and Saturday is the end of an epidemiology week.
+
+# Importing required data
+
+```{r}
+tainan <- read_rds("data/rds/tainan_study.rds")
 ```

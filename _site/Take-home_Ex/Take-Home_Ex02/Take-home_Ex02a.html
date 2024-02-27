@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2024-02-26">
+<meta name="dcterms.date" content="2024-02-27">
 
 <title>IS415-GAA-2024 - Take-home Exercise 2: Technical Guide</title>
 <style>
@@ -239,11 +239,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <ul>
   <li><a href="#project-objectives" id="toc-project-objectives" class="nav-link active" data-scroll-target="#project-objectives">Project Objectives</a></li>
   <li><a href="#installing-r-packages" id="toc-installing-r-packages" class="nav-link" data-scroll-target="#installing-r-packages">Installing R packages</a></li>
-  <li><a href="#data-import" id="toc-data-import" class="nav-link" data-scroll-target="#data-import">Data import</a>
+  <li><a href="#data-import-and-cleaning" id="toc-data-import-and-cleaning" class="nav-link" data-scroll-target="#data-import-and-cleaning">Data import and cleaning</a>
   <ul class="collapse">
   <li><a href="#geospatial-data" id="toc-geospatial-data" class="nav-link" data-scroll-target="#geospatial-data">Geospatial data</a></li>
-  <li><a href="#aspatial-data" id="toc-aspatial-data" class="nav-link" data-scroll-target="#aspatial-data">Aspatial data</a></li>
+  <li><a href="#aspatial-data" id="toc-aspatial-data" class="nav-link" data-scroll-target="#aspatial-data">Aspatial data</a>
+  <ul class="collapse">
+  <li><a href="#epidemiology-week---research" id="toc-epidemiology-week---research" class="nav-link" data-scroll-target="#epidemiology-week---research">Epidemiology week - research</a></li>
   </ul></li>
+  </ul></li>
+  <li><a href="#importing-required-data" id="toc-importing-required-data" class="nav-link" data-scroll-target="#importing-required-data">Importing required data</a></li>
   </ul>
 </nav>
     </div>
@@ -263,7 +267,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 26, 2024</p>
+      <p class="date">February 27, 2024</p>
     </div>
   </div>
     
@@ -294,24 +298,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse, sf, sfdep, tmap, readr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="data-import" class="level1">
-<h1>Data import</h1>
+<section id="data-import-and-cleaning" class="level1">
+<h1>Data import and cleaning</h1>
 <section id="geospatial-data" class="level2">
 <h2 class="anchored" data-anchor-id="geospatial-data">Geospatial data</h2>
-<p>For geospatial data, using <em>st_read()</em>, I will import the geospatial data file <code>TAINAN_VILLAGE</code>.</p>
+<p>For geospatial data, using <em>st_read()</em>, I will import the geospatial data file <code>TAINAN_VILLAGE</code>, which contains the geospatial data of village boundary of Taiwan.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>tainan <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>, </span>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>taiwan <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>, </span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">layer =</span> <span class="st">"TAINAN_VILLAGE"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Reading layer `TAINAN_VILLAGE' from data source 
-  `C:\OdeliaPeh\IS415-GAA-2024\Take-home_Ex\Take-Home_Ex02\data\geospatial' 
-  using driver `ESRI Shapefile'
-Simple feature collection with 649 features and 10 fields
-Geometry type: POLYGON
-Dimension:     XY
-Bounding box:  xmin: 120.0269 ymin: 22.88751 xmax: 120.6563 ymax: 23.41374
-Geodetic CRS:  TWD97</code></pre>
-</div>
 </div>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
@@ -328,39 +322,88 @@ Note
 </div>
 <p>Now the map can be plotted so that we can see what we are working with, grouped by <code>TOWNID</code> column.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tainan[<span class="st">"TOWNID"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="Take-home_Ex02a_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(taiwan[<span class="st">"TOWNID"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-<p>Now, I will be filtering out the study areas that this exercise focuses on, which consists of counties D01, D02, D04, D06, D07, D08, D32 and D39. This will make the later parts of data cleaning faster due to having less to process.</p>
+<p>The geospatial data here is not limited to only the city of Tainan. To filter out Tainan City for the use of this exercise, I will filter for the following counties:</p>
+<ul>
+<li><p>D01</p></li>
+<li><p>D02</p></li>
+<li><p>D04</p></li>
+<li><p>D06</p></li>
+<li><p>D07</p></li>
+<li><p>D08</p></li>
+<li><p>D32</p></li>
+<li><p>D39</p></li>
+</ul>
+<p>This will make the later parts of data cleaning faster due to having less to process.</p>
 <p>From inspecting the data table of <code>tainan</code>, it can be seen that the counties data is found in the <strong>TOWNID</strong> column, so I will be filtering them from there.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>study_area <span class="ot">&lt;-</span> tainan <span class="sc">%&gt;%</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(TOWNID <span class="sc">==</span> <span class="st">"D01"</span> <span class="sc">|</span> TOWNID <span class="sc">==</span> <span class="st">"D02"</span> <span class="sc">|</span> TOWNID <span class="sc">==</span> <span class="st">"D04"</span> <span class="sc">|</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>                       TOWNID <span class="sc">==</span> <span class="st">"D06"</span> <span class="sc">|</span> TOWNID <span class="sc">==</span> <span class="st">"D07"</span> <span class="sc">|</span> TOWNID <span class="sc">==</span> <span class="st">"D08"</span> <span class="sc">|</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                       TOWNID <span class="sc">==</span> <span class="st">"D32"</span> <span class="sc">|</span> TOWNID <span class="sc">==</span> <span class="st">"D39"</span>)</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(study_area[<span class="st">"TOWNID"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="Take-home_Ex02a_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>study_area <span class="ot">&lt;-</span> taiwan <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(TOWNID <span class="sc">==</span> <span class="st">"D01"</span> <span class="sc">|</span> TOWNID <span class="sc">==</span> <span class="st">"D02"</span> <span class="sc">|</span> TOWNID <span class="sc">==</span> <span class="st">"D04"</span> <span class="sc">|</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                       TOWNID <span class="sc">==</span> <span class="st">"D06"</span> <span class="sc">|</span> TOWNID <span class="sc">==</span> <span class="st">"D07"</span> <span class="sc">|</span> TOWNID <span class="sc">==</span> <span class="st">"D08"</span> <span class="sc">|</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                       TOWNID <span class="sc">==</span> <span class="st">"D32"</span> <span class="sc">|</span> TOWNID <span class="sc">==</span> <span class="st">"D39"</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(study_area[<span class="st">"TOWNID"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Now, we can check for any missing geospatial data from the desired study areas.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">is.na</span>(study_area<span class="sc">$</span>geometry))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>With this done, we can save the data in the rds format to allow for faster data retrieval.</p>
+<p>With these checks done, we can save the data in the rds format to allow for faster data retrieval.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(study_area, <span class="st">"data/rds/tainan_study.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="aspatial-data" class="level2">
 <h2 class="anchored" data-anchor-id="aspatial-data">Aspatial data</h2>
-<p>For aspatial data, I will be using <em>read_csv()</em> to import the csv file <code>Dengue_Daily</code></p>
+<p>For aspatial data, I will be using <em>read_csv()</em> to import the csv file <code>Dengue_Daily</code>, which contains the aspatial data of reported dengue cases in Taiwan.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>disease_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/Dengue_Daily.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-
-
+<p>Again, the data is not limited to only the city of Tainan. Before cleaning, I inspected the data using the tab on the side (the data is large and difficult to examine using methods such as <em>head()</em>) and found that almost all of the data and all of the attribute columns are written in Simplified Chinese.</p>
+<p>Right now, I want to narrow the data to only reported cases within the city of Tainan. To do that, I will be using <em>filter()</em> to retrieve all data that are labelled as 台南市 in the attribute column <code>居住縣市</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>tainan_cases <span class="ot">&lt;-</span> disease_data <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(居住縣市 <span class="sc">==</span> <span class="st">"台南市"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>With this narrower list, we can look at the attribute columns. For this exercise, the most important ones are the following:</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Attribute</th>
+<th>Translation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>發病日</td>
+<td>Onset date</td>
+</tr>
+<tr class="even">
+<td>最小統計區中心點X</td>
+<td>X-coordinate</td>
+</tr>
+<tr class="odd">
+<td>最小統計區中心點Y</td>
+<td>Y-coordinate</td>
+</tr>
+</tbody>
+</table>
+<section id="epidemiology-week---research" class="level3">
+<h3 class="anchored" data-anchor-id="epidemiology-week---research">Epidemiology week - research</h3>
+<p>The exercise calls for the use of epidemiology weeks, but what are they?</p>
+<p>According to the Central Massachusetts Mosquito Control Project (CMMCP), epidemiological weeks are <a href="https://www.cmmcp.org/mosquito-surveillance-data/pages/epi-week-calendars-2008-2024">“a standardized method of counting weeks to allow for the comparison of data year after year”</a>. By default, Sunday is marked as the beginning of an epidemiology week and Saturday is the end of an epidemiology week.</p>
 </section>
+</section>
+</section>
+<section id="importing-required-data" class="level1">
+<h1>Importing required data</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>tainan <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/tainan_study.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+
 </section>
 
 </main> <!-- /main -->
