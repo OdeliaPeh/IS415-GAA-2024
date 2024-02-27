@@ -113,6 +113,8 @@ write_rds(study_area, "data/rds/tainan_study.rds")
 For aspatial data, I will be using *read_csv()* to import the csv file `Dengue_Daily`, which contains the aspatial data of reported dengue cases in Taiwan.
 
 ```{r}
+#| eval: false
+
 disease_data <- read_csv("data/aspatial/Dengue_Daily.csv")
 ```
 
@@ -121,6 +123,8 @@ Again, the data is not limited to only the city of Tainan. Before cleaning, I in
 Right now, I want to narrow the data to only reported cases within the city of Tainan. To do that, I will be using *filter()* to retrieve all data that are labelled as 台南市 in the attribute column `居住縣市`
 
 ```{r}
+#| eval: false
+
 tainan_cases <- disease_data %>%
               filter(居住縣市 == "台南市")
 ```
@@ -135,12 +139,42 @@ With this narrower list, we can look at the attribute columns. For this exercise
 
 ### Epidemiology week - research
 
-The exercise calls for the use of epidemiology weeks, but what are they?
+> The exercise calls for the use of epidemiology weeks, but what are they?
+>
+> According to the Central Massachusetts Mosquito Control Project (CMMCP), epidemiological weeks are ["a standardized method of counting weeks to allow for the comparison of data year after year"](https://www.cmmcp.org/mosquito-surveillance-data/pages/epi-week-calendars-2008-2024). By default, **Sunday** is marked as the beginning of an epidemiology week and Saturday is the end of an epidemiology week.
+>
+> But why use epidemiological weeks? CMMCP explains that for certain types of data, such as mosquito surveillance, "[daily increments are too frequent and too varied to be able to be managed and analyzed, or there are many factors that make it impossible to compare daily results](https://www.cmmcp.org/mosquito-surveillance-data/pages/epi-week-calendars-2008-2024)", and frequent data interpretation is required. Hence, an epidemiological week creates a form of intermediary period of time that allows for data analysis to occur.
 
-According to the Central Massachusetts Mosquito Control Project (CMMCP), epidemiological weeks are ["a standardized method of counting weeks to allow for the comparison of data year after year"](https://www.cmmcp.org/mosquito-surveillance-data/pages/epi-week-calendars-2008-2024). By default, Sunday is marked as the beginning of an epidemiology week and Saturday is the end of an epidemiology week.
+## Data cleaning continued
+
+The [*epiweek()*](https://lubridate.tidyverse.org/reference/week.html#ref-examples) functions from the lubridate package is able to return the epidemiological week from a dataset. Instead of creating a new dataset, we can instead create a new attribute column titled "EpiWk".
+
+```{r}
+#| eval: false
+
+tainan_cases$EpiWk <- epiweek(tainan_cases$發病日)
+```
+
+With that accomplished, we can filter for the time frame given in the exercise, which is epidemiological weeks 31-50 of the year 2023.
+
+```{r}
+#| eval: false
+
+final_cases <- subset(tainan_cases, substr(發病日, 0,4) == "2023")
+final_cases <- final_cases %>% filter(EpiWk >= 31 & EpiWk <= 50)
+```
+
+We can now write this cleaned data out as an rds.
+
+```{r}
+#| eval: false
+
+write_rds(final_cases, "data/rds/cases_cleaned.rds")
+```
 
 # Importing required data
 
 ```{r}
 tainan <- read_rds("data/rds/tainan_study.rds")
+cases <- read_rds("data/rds/cases_cleaned.rds")
 ```

@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2024-02-27">
+<meta name="dcterms.date" content="2024-02-28">
 
 <title>IS415-GAA-2024 - Take-home Exercise 2: Technical Guide</title>
 <style>
@@ -246,6 +246,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <ul class="collapse">
   <li><a href="#epidemiology-week---research" id="toc-epidemiology-week---research" class="nav-link" data-scroll-target="#epidemiology-week---research">Epidemiology week - research</a></li>
   </ul></li>
+  <li><a href="#data-cleaning-continued" id="toc-data-cleaning-continued" class="nav-link" data-scroll-target="#data-cleaning-continued">Data cleaning continued</a></li>
   </ul></li>
   <li><a href="#importing-required-data" id="toc-importing-required-data" class="nav-link" data-scroll-target="#importing-required-data">Importing required data</a></li>
   </ul>
@@ -267,7 +268,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 27, 2024</p>
+      <p class="date">February 28, 2024</p>
     </div>
   </div>
     
@@ -392,15 +393,35 @@ Note
 </table>
 <section id="epidemiology-week---research" class="level3">
 <h3 class="anchored" data-anchor-id="epidemiology-week---research">Epidemiology week - research</h3>
+<blockquote class="blockquote">
 <p>The exercise calls for the use of epidemiology weeks, but what are they?</p>
-<p>According to the Central Massachusetts Mosquito Control Project (CMMCP), epidemiological weeks are <a href="https://www.cmmcp.org/mosquito-surveillance-data/pages/epi-week-calendars-2008-2024">“a standardized method of counting weeks to allow for the comparison of data year after year”</a>. By default, Sunday is marked as the beginning of an epidemiology week and Saturday is the end of an epidemiology week.</p>
+<p>According to the Central Massachusetts Mosquito Control Project (CMMCP), epidemiological weeks are <a href="https://www.cmmcp.org/mosquito-surveillance-data/pages/epi-week-calendars-2008-2024">“a standardized method of counting weeks to allow for the comparison of data year after year”</a>. By default, <strong>Sunday</strong> is marked as the beginning of an epidemiology week and Saturday is the end of an epidemiology week.</p>
+<p>But why use epidemiological weeks? CMMCP explains that for certain types of data, such as mosquito surveillance, “<a href="https://www.cmmcp.org/mosquito-surveillance-data/pages/epi-week-calendars-2008-2024">daily increments are too frequent and too varied to be able to be managed and analyzed, or there are many factors that make it impossible to compare daily results</a>”, and frequent data interpretation is required. Hence, an epidemiological week creates a form of intermediary period of time that allows for data analysis to occur.</p>
+</blockquote>
 </section>
+</section>
+<section id="data-cleaning-continued" class="level2">
+<h2 class="anchored" data-anchor-id="data-cleaning-continued">Data cleaning continued</h2>
+<p>The <a href="https://lubridate.tidyverse.org/reference/week.html#ref-examples"><em>epiweek()</em></a> functions from the lubridate package is able to return the epidemiological week from a dataset. Instead of creating a new dataset, we can instead create a new attribute column titled “EpiWk”.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>tainan_cases<span class="sc">$</span>EpiWk <span class="ot">&lt;-</span> <span class="fu">epiweek</span>(tainan_cases<span class="sc">$</span>發病日)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>With that accomplished, we can filter for the time frame given in the exercise, which is epidemiological weeks 31-50 of the year 2023.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>final_cases <span class="ot">&lt;-</span> <span class="fu">subset</span>(tainan_cases, <span class="fu">substr</span>(發病日, <span class="dv">0</span>,<span class="dv">4</span>) <span class="sc">==</span> <span class="st">"2023"</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>final_cases <span class="ot">&lt;-</span> final_cases <span class="sc">%&gt;%</span> <span class="fu">filter</span>(EpiWk <span class="sc">&gt;=</span> <span class="dv">31</span> <span class="sc">&amp;</span> EpiWk <span class="sc">&lt;=</span> <span class="dv">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We can now write this cleaned data out as an rds.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(final_cases, <span class="st">"data/rds/cases_cleaned.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
 </section>
 <section id="importing-required-data" class="level1">
 <h1>Importing required data</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>tainan <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/tainan_study.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>tainan <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/tainan_study.rds"</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>cases <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/cases_cleaned.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
