@@ -476,6 +476,10 @@ Note
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(tainan)[<span class="fu">colnames</span>(tainan) <span class="sc">==</span> <span class="st">"TOWNNAME"</span>] <span class="ot">&lt;-</span> <span class="st">"居住鄉鎮"</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(tainan)[<span class="fu">colnames</span>(tainan) <span class="sc">==</span> <span class="st">"VILLNAME"</span>] <span class="ot">&lt;-</span> <span class="st">"居住村里"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>With these columns renamed, I can now perform a relational join between the <code>tainan</code> data set and the <code>cases</code> data set.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>tainan_cases <span class="ot">&lt;-</span> <span class="fu">left_join</span>(cases,tainan)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 
 
 </section>

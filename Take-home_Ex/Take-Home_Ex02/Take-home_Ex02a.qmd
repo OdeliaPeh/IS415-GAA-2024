@@ -216,3 +216,9 @@ Before a relational join can be conducted, I will first need to rename the relev
 colnames(tainan)[colnames(tainan) == "TOWNNAME"] <- "居住鄉鎮"
 colnames(tainan)[colnames(tainan) == "VILLNAME"] <- "居住村里"
 ```
+
+With these columns renamed, I can now perform a relational join between the `tainan` data set and the `cases` data set.
+
+```{r}
+tainan_cases <- left_join(cases,tainan)
+```
