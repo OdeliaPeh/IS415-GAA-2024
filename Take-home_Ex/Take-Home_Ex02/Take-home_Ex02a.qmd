@@ -164,6 +164,15 @@ final_cases <- subset(tainan_cases, substr(發病日, 0,4) == "2023")
 final_cases <- final_cases %>% filter(EpiWk >= 31 & EpiWk <= 50)
 ```
 
+I will also check for any missing geographical data.
+
+```{r}
+#| eval: false
+
+any(is.na(final_cases$最小統計區中心點X))
+any(is.na(final_cases$最小統計區中心點Y))
+```
+
 We can now write this cleaned data out as an rds.
 
 ```{r}
@@ -177,4 +186,33 @@ write_rds(final_cases, "data/rds/cases_cleaned.rds")
 ```{r}
 tainan <- read_rds("data/rds/tainan_study.rds")
 cases <- read_rds("data/rds/cases_cleaned.rds")
+```
+
+## Brief exploratory data analysis: cases over time
+
+To visualise the spread of cases over epidemiological weeks 31-50, we can use the *hist()* function.
+
+```{r}
+cases_num <- as.numeric(cases$EpiWk)
+
+hist(cases_num, xlim = range(30, 50), xlab = "Epidemiological Week", ylab = "Frequency", main = "Distribution of Cases over Time (2023)", col = "blue")
+```
+
+This histogram tells us that the number of dengue cases is normally distributed over epidemiological weeks 31-50.
+
+# Data wrangling: consolidating data set
+
+With the two cleaned sets of data, I can now join them together in order to form a consolidated data set. For this exercise, I am choosing to conduct a left relational join, and intend to keep all of the observation in the `cases` data set.
+
+Before a relational join can be conducted, I will first need to rename the relevant/important attribute rows. The following rows will be renamed accordingly into Simplified Chinese using the *colnames()* function:
+
+| Original | Renamed                 |
+|----------|-------------------------|
+| TOWNNAME | 居住鄉鎮                |
+| VILLNAME | 居住村里                |
+| geometry | geometry (must be kept) |
+
+```{r}
+colnames(tainan)[colnames(tainan) == "TOWNNAME"] <- "居住鄉鎮"
+colnames(tainan)[colnames(tainan) == "VILLNAME"] <- "居住村里"
 ```

@@ -248,7 +248,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   </ul></li>
   <li><a href="#data-cleaning-continued" id="toc-data-cleaning-continued" class="nav-link" data-scroll-target="#data-cleaning-continued">Data cleaning continued</a></li>
   </ul></li>
-  <li><a href="#importing-required-data" id="toc-importing-required-data" class="nav-link" data-scroll-target="#importing-required-data">Importing required data</a></li>
+  <li><a href="#importing-required-data" id="toc-importing-required-data" class="nav-link" data-scroll-target="#importing-required-data">Importing required data</a>
+  <ul class="collapse">
+  <li><a href="#brief-exploratory-data-analysis-cases-over-time" id="toc-brief-exploratory-data-analysis-cases-over-time" class="nav-link" data-scroll-target="#brief-exploratory-data-analysis-cases-over-time">Brief exploratory data analysis: cases over time</a></li>
+  </ul></li>
+  <li><a href="#data-wrangling-consolidating-data-set" id="toc-data-wrangling-consolidating-data-set" class="nav-link" data-scroll-target="#data-wrangling-consolidating-data-set">Data wrangling: consolidating data set</a></li>
   </ul>
 </nav>
     </div>
@@ -411,17 +415,66 @@ Note
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>final_cases <span class="ot">&lt;-</span> <span class="fu">subset</span>(tainan_cases, <span class="fu">substr</span>(發病日, <span class="dv">0</span>,<span class="dv">4</span>) <span class="sc">==</span> <span class="st">"2023"</span>)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>final_cases <span class="ot">&lt;-</span> final_cases <span class="sc">%&gt;%</span> <span class="fu">filter</span>(EpiWk <span class="sc">&gt;=</span> <span class="dv">31</span> <span class="sc">&amp;</span> EpiWk <span class="sc">&lt;=</span> <span class="dv">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>I will also check for any missing geographical data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">is.na</span>(final_cases<span class="sc">$</span>最小統計區中心點X))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">is.na</span>(final_cases<span class="sc">$</span>最小統計區中心點Y))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 <p>We can now write this cleaned data out as an rds.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(final_cases, <span class="st">"data/rds/cases_cleaned.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(final_cases, <span class="st">"data/rds/cases_cleaned.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
 <section id="importing-required-data" class="level1">
 <h1>Importing required data</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>tainan <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/tainan_study.rds"</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>cases <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/cases_cleaned.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>tainan <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/tainan_study.rds"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>cases <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/cases_cleaned.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="brief-exploratory-data-analysis-cases-over-time" class="level2">
+<h2 class="anchored" data-anchor-id="brief-exploratory-data-analysis-cases-over-time">Brief exploratory data analysis: cases over time</h2>
+<p>To visualise the spread of cases over epidemiological weeks 31-50, we can use the <em>hist()</em> function.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>cases_num <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(cases<span class="sc">$</span>EpiWk)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(cases_num, <span class="at">xlim =</span> <span class="fu">range</span>(<span class="dv">30</span>, <span class="dv">50</span>), <span class="at">xlab =</span> <span class="st">"Epidemiological Week"</span>, <span class="at">ylab =</span> <span class="st">"Frequency"</span>, <span class="at">main =</span> <span class="st">"Distribution of Cases over Time (2023)"</span>, <span class="at">col =</span> <span class="st">"blue"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take-home_Ex02a_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>This histogram tells us that the number of dengue cases is normally distributed over epidemiological weeks 31-50.</p>
+</section>
+</section>
+<section id="data-wrangling-consolidating-data-set" class="level1">
+<h1>Data wrangling: consolidating data set</h1>
+<p>With the two cleaned sets of data, I can now join them together in order to form a consolidated data set. For this exercise, I am choosing to conduct a left relational join, and intend to keep all of the observation in the <code>cases</code> data set.</p>
+<p>Before a relational join can be conducted, I will first need to rename the relevant/important attribute rows. The following rows will be renamed accordingly into Simplified Chinese using the <em>colnames()</em> function:</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Original</th>
+<th>Renamed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>TOWNNAME</td>
+<td>居住鄉鎮</td>
+</tr>
+<tr class="even">
+<td>VILLNAME</td>
+<td>居住村里</td>
+</tr>
+<tr class="odd">
+<td>geometry</td>
+<td>geometry (must be kept)</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(tainan)[<span class="fu">colnames</span>(tainan) <span class="sc">==</span> <span class="st">"TOWNNAME"</span>] <span class="ot">&lt;-</span> <span class="st">"居住鄉鎮"</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(tainan)[<span class="fu">colnames</span>(tainan) <span class="sc">==</span> <span class="st">"VILLNAME"</span>] <span class="ot">&lt;-</span> <span class="st">"居住村里"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 

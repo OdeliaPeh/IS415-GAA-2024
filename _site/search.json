@@ -529,6 +529,13 @@
     "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#data-cleaning-continued",
     "title": "Take-home Exercise 2: Technical Guide",
     "section": "Data cleaning continued",
-    "text": "Data cleaning continued\nThe epiweek() functions from the lubridate package is able to return the epidemiological week from a dataset. Instead of creating a new dataset, we can instead create a new attribute column titled “EpiWk”.\n\ntainan_cases$EpiWk <- epiweek(tainan_cases$發病日)\n\nWith that accomplished, we can filter for the time frame given in the exercise, which is epidemiological weeks 31-50 of the year 2023.\n\nfinal_cases <- subset(tainan_cases, substr(發病日, 0,4) == \"2023\")\nfinal_cases <- final_cases %>% filter(EpiWk >= 31 & EpiWk <= 50)\n\nWe can now write this cleaned data out as an rds.\n\nwrite_rds(final_cases, \"data/rds/cases_cleaned.rds\")"
+    "text": "Data cleaning continued\nThe epiweek() functions from the lubridate package is able to return the epidemiological week from a dataset. Instead of creating a new dataset, we can instead create a new attribute column titled “EpiWk”.\n\ntainan_cases$EpiWk <- epiweek(tainan_cases$發病日)\n\nWith that accomplished, we can filter for the time frame given in the exercise, which is epidemiological weeks 31-50 of the year 2023.\n\nfinal_cases <- subset(tainan_cases, substr(發病日, 0,4) == \"2023\")\nfinal_cases <- final_cases %>% filter(EpiWk >= 31 & EpiWk <= 50)\n\nI will also check for any missing geographical data.\n\nany(is.na(final_cases$最小統計區中心點X))\nany(is.na(final_cases$最小統計區中心點Y))\n\nWe can now write this cleaned data out as an rds.\n\nwrite_rds(final_cases, \"data/rds/cases_cleaned.rds\")"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#brief-exploratory-data-analysis-cases-over-time",
+    "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#brief-exploratory-data-analysis-cases-over-time",
+    "title": "Take-home Exercise 2: Technical Guide",
+    "section": "Brief exploratory data analysis: cases over time",
+    "text": "Brief exploratory data analysis: cases over time\nTo visualise the spread of cases over epidemiological weeks 31-50, we can use the hist() function.\n\ncases_num <- as.numeric(cases$EpiWk)\n\nhist(cases_num, xlim = range(30, 50), xlab = \"Epidemiological Week\", ylab = \"Frequency\", main = \"Distribution of Cases over Time (2023)\", col = \"blue\")\n\n\n\n\nThis histogram tells us that the number of dengue cases is normally distributed over epidemiological weeks 31-50."
   }
 ]
