@@ -29,8 +29,10 @@ For the technical portion of the take home exercise, I will be using the followi
 
 -   readr
 
+-   ggplot2
+
 ```{r}
-pacman::p_load(tidyverse, sf, sfdep, tmap, readr)
+pacman::p_load(tidyverse, sf, sfdep, tmap, readr, ggplot2)
 ```
 
 # Data import and cleaning
@@ -382,9 +384,94 @@ From the p-value returned, I can reject the null hypothesis that the distributio
 
 ## Local Spatial Autocorrelation
 
-break
+### Computing local Moran's I
 
-## Building timespace cube
+The decomposition of global Moran's I can be used to help detect clusters and outliers.
+
+```{r}
+lisa <- wm_q %>% 
+  mutate(local_moran = local_moran(
+    weekly_cases, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_moran)
+```
+
+### Mapping local Moran's I
+
+Local Moran's I results can be plotted on a chloropleth map. Using chloropleth mapping functions of **tmap** package, we can plot the local Moran’s I values by using the following code.
+
+```{r}
+tmap_mode('plot')
+tm_shape(lisa) +
+  tm_fill(col = "ii") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Local Moran's I for dengue cases in Tainan",
+            main.title.size = 0.8)
+
+tmap_mode('view')
+```
+
+### Mapping both local Moran’s I values and p-values
+
+For effective interpretation, it is better to plot both the local Moran’s I values map and its corresponding p-values map next to each other.
+
+```{r}
+localMI.map <- tm_shape(lisa) +
+  tm_fill(col = "ii") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Local Moran's I",
+            main.title.size = 0.8)
+
+pvalue.map <- tm_shape(lisa) +
+  tm_fill(col = "p_ii", 
+          breaks=c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf)) +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Local Moran's I p-values",
+            main.title.size = 0.8) +
+  tm_borders(alpha = 0.5)
+
+tmap_arrange(localMI.map, pvalue.map, ncol=2)
+```
+
+### Mapping LISA map
+
+The LISA Cluster Map shows the significant locations color coded by type of spatial autocorrelation. To prepare a LISA map, I use the following code:
+
+```{r}
+#filter for statistically significant clusters
+lisa_sig <- lisa %>% filter(p_ii < 0.5)
+
+tmap_mode("plot")
+tm_shape(lisa) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(lisa_sig) +
+  tm_fill("mean") + 
+  tm_borders(alpha = 0.4) +
+tm_layout(main.title = "LISA map",
+            main.title.size = 0.8)
+
+tmap_mode('view')
+```
+
+## Emerging Hot Spot Analysis (EHSA)
+
+### Computing Local Gi\* statistics
+
+Specially calibrated to detect hot and cold spots. By providing the desired weights and using inverse distance there is more weight given to neighbours that are closer based on distance.
+
+```{r}
+wm_idw <- summed_sf %>%
+  mutate(nb = st_contiguity(geometry),
+         wts = st_inverse_distance(nb, geometry,
+                                   scale = 1,
+                                   alpha = 1),
+         .before = 1)
+```
+
+### Building timespace cube
+
+I will next build a timespace cube using `summed_cases_final` and `tainan` data sets.
 
 ```{r}
 dengue_cube <- spacetime(summed_cases_final, tainan,
@@ -392,4 +479,123 @@ dengue_cube <- spacetime(summed_cases_final, tainan,
                       .time_col = "EpiWk")
 
 is_spacetime_cube(dengue_cube)
+```
+
+### Deriving spatial weights
+
+break
+
+```{r}
+dengue_nb <- dengue_cube %>%
+  activate("geometry")  %>% #only pulls out the geometry layer
+  mutate(nb = include_self(st_contiguity(geometry)),
+         wt = st_inverse_distance(nb, geometry,
+                                  scale = 1,
+                                  alpha = 1),
+         .before = 1) %>%
+  set_nbs("nb") %>%
+  set_wts("wt")
+```
+
+Note that this dataset now has neighbors and weights for each time-slice.
+
+```{r}
+head(dengue_nb)
+```
+
+We can use these new columns to [manually calculate the local Gi\*](https://sfdep.josiahparry.com/articles/understanding-emerging-hotspots.html) for each location.
+
+```{r}
+gi_stars <- dengue_nb %>% 
+  group_by(EpiWk) %>% 
+  mutate(gi_star = local_gstar_perm(
+    weekly_cases, nb, wt)) %>% 
+  tidyr::unnest(gi_star)
+```
+
+### Mann-Kendall Method
+
+This helps us to detect the statistical significance of each location. It is a non-parametric method.
+
+With these Gi\* measures we can then evaluate each location for a trend using the Mann-Kendall test and test its significance.
+
+```{r}
+ehsa <- gi_stars %>%
+  group_by(EpiWk) %>%
+  summarise(mk = list(
+    unclass(
+      Kendall::MannKendall(gi_star)))) %>%
+  tidyr::unnest_wider(mk)
+```
+
+Next, it can be arranged to show signficant hot and cold spots.
+
+```{r}
+emerging <- ehsa %>% 
+  arrange(sl, abs(tau)) %>% 
+  slice(1:5)
+
+head(emerging)
+```
+
+### Mapping EHSA
+
+Finally, we can conduct EHSA analysis. There is a function called [*emerging_hotspot_analysis()*](https://search.r-project.org/CRAN/refmans/sfdep/html/emerging_hotspot_analysis.html) from the `sfdep` package. It combines the Getis-Ord Gi\* statistic with the Mann-Kendall trend test to determine if there is a temporal trend associated with local clustering of hot and cold spots.
+
+The arguments are as follows:
+
+-   x: a spacetime object, must be a spacetime cube
+
+-   .var: a numeric vector in the spacetime cube with no missing values
+
+-   k: defaults to 1. The number of time lags to include in the neighborhood for calculating the local Gi\*
+
+-   nsim: default 199. The number of simulations to run in calculating the simulated p-value for the local Gi\*
+
+```{r}
+ehsa <- emerging_hotspot_analysis(
+  x = dengue_cube, 
+  .var = "weekly_cases", 
+  k = 1, 
+  nsim = 99
+)
+```
+
+Before EHSA can be mapped, we need to join them with `summed_sf` (for the geometry)
+
+```{r}
+tainan_ehsa <- summed_sf %>%
+  left_join(ehsa,
+            by = join_by(TOWNVILL == location))
+```
+
+Now, I can plot the EHSA of dengue cases in Tainan.
+
+```{r}
+ehsa_sig <- tainan_ehsa  %>%
+  filter(p_value < 0.05)
+
+```
+
+```{r}
+tmap_mode("plot")
+tm_shape(tainan_ehsa) +
+  tm_polygons() +
+  tm_borders(0.8) +
+tm_shape(ehsa_sig) +
+  tm_fill("classification") +
+  tm_borders(0.3) +
+tm_layout(main.title = "Emerging Hotspot and Coldspots",
+            main.title.size = 0.8)
+
+tmap_mode('view')
+```
+
+We can also visualise the distribution of hot and cold spots via ggplot.
+
+```{r}
+ggplot(data = ehsa,
+       aes(x = classification)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
 ```
