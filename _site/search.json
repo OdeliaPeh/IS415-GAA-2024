@@ -506,36 +506,85 @@
   {
     "objectID": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html",
     "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html",
-    "title": "Take-home Exercise 2: Technical Guide",
+    "title": "Take-home Exercise 2",
     "section": "",
     "text": "For this geospatial task, we have been tasked to discover:\n\nif the distribution of dengue fever outbreak at Tainan City, Taiwan are independent from space and space and time.\nIf the outbreak is indeed spatial and spatio-temporal dependent, then, you would like to detect where are the clusters and outliers, and the emerging hot spot/cold spot areas."
   },
   {
     "objectID": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#geospatial-data",
     "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#geospatial-data",
-    "title": "Take-home Exercise 2: Technical Guide",
+    "title": "Take-home Exercise 2",
     "section": "Geospatial data",
     "text": "Geospatial data\nFor geospatial data, using st_read(), I will import the geospatial data file TAINAN_VILLAGE, which contains the geospatial data of village boundary of Taiwan.\n\ntaiwan <- st_read(dsn = \"data/geospatial\", \n                layer = \"TAINAN_VILLAGE\")\n\n\n\n\n\n\n\nNote\n\n\n\nThe data is in Taiwan Geographic Coordinate System, TWD97. This should be kept unchanged to ensure that the data is as accurate as possible to the collected data.\n\n\nNow the map can be plotted so that we can see what we are working with, grouped by TOWNID column.\n\nplot(taiwan[\"TOWNID\"])\n\nThe geospatial data here is not limited to only the city of Tainan. To filter out Tainan City for the use of this exercise, I will filter for the following counties:\n\nD01\nD02\nD04\nD06\nD07\nD08\nD32\nD39\n\nThis will make the later parts of data cleaning faster due to having less to process.\nFrom inspecting the data table of tainan, it can be seen that the counties data is found in the TOWNID column, so I will be filtering them from there.\n\nstudy_area <- taiwan %>%\n              filter(TOWNID == \"D01\" | TOWNID == \"D02\" | TOWNID == \"D04\" |\n                       TOWNID == \"D06\" | TOWNID == \"D07\" | TOWNID == \"D08\" |\n                       TOWNID == \"D32\" | TOWNID == \"D39\")\n\n\nplot(study_area[\"TOWNID\"])\n\nNow, we can check for any missing geospatial data from the desired study areas.\n\nany(is.na(study_area$geometry))\n\nWith these checks done, we can save the data in the rds format to allow for faster data retrieval.\n\nwrite_rds(study_area, \"data/rds/tainan_study.rds\")"
   },
   {
     "objectID": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#aspatial-data",
     "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#aspatial-data",
-    "title": "Take-home Exercise 2: Technical Guide",
+    "title": "Take-home Exercise 2",
     "section": "Aspatial data",
     "text": "Aspatial data\nFor aspatial data, I will be using read_csv() to import the csv file Dengue_Daily, which contains the aspatial data of reported dengue cases in Taiwan.\n\ndisease_data <- read_csv(\"data/aspatial/Dengue_Daily.csv\")\n\nAgain, the data is not limited to only the city of Tainan. Before cleaning, I inspected the data using the tab on the side (the data is large and difficult to examine using methods such as head()) and found that almost all of the data and all of the attribute columns are written in Simplified Chinese.\nRight now, I want to narrow the data to only reported cases within the city of Tainan. To do that, I will be using filter() to retrieve all data that are labelled as 台南市 in the attribute column 居住縣市\n\ntainan_cases <- disease_data %>%\n              filter(居住縣市 == \"台南市\")\n\nWith this narrower list, we can look at the attribute columns. For this exercise, the most important ones are the following:\n\n\n\nAttribute\nTranslation\n\n\n\n\n發病日\nOnset date\n\n\n最小統計區中心點X\nX-coordinate\n\n\n最小統計區中心點Y\nY-coordinate\n\n\n\n\nEpidemiology week - research\n\nThe exercise calls for the use of epidemiology weeks, but what are they?\nAccording to the Central Massachusetts Mosquito Control Project (CMMCP), epidemiological weeks are “a standardized method of counting weeks to allow for the comparison of data year after year”. By default, Sunday is marked as the beginning of an epidemiology week and Saturday is the end of an epidemiology week.\nBut why use epidemiological weeks? CMMCP explains that for certain types of data, such as mosquito surveillance, “daily increments are too frequent and too varied to be able to be managed and analyzed, or there are many factors that make it impossible to compare daily results”, and frequent data interpretation is required. Hence, an epidemiological week creates a form of intermediary period of time that allows for data analysis to occur."
   },
   {
     "objectID": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#data-cleaning-continued",
     "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#data-cleaning-continued",
-    "title": "Take-home Exercise 2: Technical Guide",
+    "title": "Take-home Exercise 2",
     "section": "Data cleaning continued",
-    "text": "Data cleaning continued\nThe epiweek() functions from the lubridate package is able to return the epidemiological week from a dataset. Instead of creating a new dataset, we can instead create a new attribute column titled “EpiWk”.\n\ntainan_cases$EpiWk <- epiweek(tainan_cases$發病日)\n\nWith that accomplished, we can filter for the time frame given in the exercise, which is epidemiological weeks 31-50 of the year 2023.\n\nfinal_cases <- subset(tainan_cases, substr(發病日, 0,4) == \"2023\")\nfinal_cases <- final_cases %>% filter(EpiWk >= 31 & EpiWk <= 50)\n\nI will also check for any missing geographical data.\n\nany(is.na(final_cases$最小統計區中心點X))\nany(is.na(final_cases$最小統計區中心點Y))\n\nWe can now write this cleaned data out as an rds.\n\nwrite_rds(final_cases, \"data/rds/cases_cleaned.rds\")"
+    "text": "Data cleaning continued\nThe epiweek() functions from the lubridate package is able to return the epidemiological week from a dataset. Instead of creating a new dataset, we can instead create a new attribute column titled “EpiWk”.\n\ntainan_cases$EpiWk <- epiweek(tainan_cases$發病日)\n\nWith that accomplished, we can filter for the time frame given in the exercise, which is epidemiological weeks 31-50 of the year 2023.\n\nfinal_cases <- subset(tainan_cases, substr(發病日, 0,4) == \"2023\")\nfinal_cases <- final_cases %>% filter(EpiWk >= 31 & EpiWk <= 50)\n\nI will also check for any missing geographical data.\n\nany(is.na(final_cases$最小統計區中心點X))\nany(is.na(final_cases$最小統計區中心點Y))\n\nDespite the code showing us that there are no missing values, checking the data table shows that there are 10 items without x or y coordinates. These values need to be removed to prevent issues in the future.\n\nclean_data <- final_cases %>%\n  filter(!(最小統計區中心點X=='None' | 最小統計區中心點Y > 'None'))\n\n\nany(is.na(clean_data$最小統計區中心點X))\nany(is.na(clean_data$最小統計區中心點Y))\n\nWe can now write this cleaned data out as an rds.\n\nwrite_rds(clean_data, \"data/rds/cases_cleaned.rds\")"
   },
   {
     "objectID": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#brief-exploratory-data-analysis-cases-over-time",
     "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#brief-exploratory-data-analysis-cases-over-time",
-    "title": "Take-home Exercise 2: Technical Guide",
+    "title": "Take-home Exercise 2",
     "section": "Brief exploratory data analysis: cases over time",
     "text": "Brief exploratory data analysis: cases over time\nTo visualise the spread of cases over epidemiological weeks 31-50, we can use the hist() function.\n\ncases_num <- as.numeric(cases$EpiWk)\n\nhist(cases_num, xlim = range(30, 50), xlab = \"Epidemiological Week\", ylab = \"Frequency\", main = \"Distribution of Cases over Time (2023)\", col = \"blue\")\n\n\n\n\nThis histogram tells us that the number of dengue cases is normally distributed over epidemiological weeks 31-50."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#checking-for-null-values",
+    "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#checking-for-null-values",
+    "title": "Take-home Exercise 2",
+    "section": "Checking for null values",
+    "text": "Checking for null values\nBefore doing anything further, I am going to check for null values in the geometry column to ensure that everything lies within the map and that nothing was lost during the join.\n\nany(is.na(tainan_consol$geometry))\n\n[1] FALSE"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#computing-sum-of-all-cases",
+    "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#computing-sum-of-all-cases",
+    "title": "Take-home Exercise 2: Technical Guide",
+    "section": "Computing sum of all cases",
+    "text": "Computing sum of all cases\nI will also need to compute the sum of all cases in that region for future chloropleth mapping including transforming it into an sf object.\n\ntainan_grouped <- tainan_consol %>%\n                  group_by(居住鄉鎮, 居住村里) %>%\n                  summarise(count=n())\n\ntainan_grouped <- left_join(tainan_grouped, tainan_consol)\ntainan_grouped <- st_as_sf(tainan_grouped, coords = c(\"最小統計區中心點X\", \"最小統計區中心點Y\"), crs = st_crs(tainan))"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#computing-sum-of-cases-by-village",
+    "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#computing-sum-of-cases-by-village",
+    "title": "Take-home Exercise 2",
+    "section": "Computing sum of cases by village",
+    "text": "Computing sum of cases by village\nNext, I will also need to compute the total sum of cases by village and week.\n\nsummed_cases <- tainan_consol %>%\n  group_by(TOWNVILL, EpiWk) %>%\n  summarise(weekly_cases=n()) %>%\n  st_drop_geometry()\n\nHowever, doing this will result in weeks with 0 cases being dropped. To fix this, we will have to rejoin the missing village data.\n\n#Creating TOWNVILL column to allow for extraction\ntainan$TOWNVILL = paste(tainan$居住鄉鎮, tainan$居住村里)\n  \n#Extracting all unique TOWNVILL with EpiWk\nunique_identity <- expand_grid(TOWNVILL = unique(tainan$TOWNVILL),\n                               EpiWk = 31:50)\n\n#Join to summed_cases\nsummed_cases <- left_join(unique_identity, summed_cases, by = c(\"TOWNVILL\", \"EpiWk\"))\n\n#Replace missing \"NA\" values with 0\nsummed_cases_final <- mutate(summed_cases, \n                             weekly_cases = if_else(is.na(weekly_cases), 0, weekly_cases))"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#visualisation-using-chloropleth-map",
+    "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#visualisation-using-chloropleth-map",
+    "title": "Take-home Exercise 2",
+    "section": "Visualisation using chloropleth map",
+    "text": "Visualisation using chloropleth map\nFirst, I want to see what the map may look like using a quantile distribution. To do that, I will need to join the attributes in summed_cases_final and tainan together.\n\nsummed_sf <- left_join(tainan, summed_cases_final)\n\n\ntmap_mode('plot')\n\ntm_shape(summed_sf) +\n  tm_fill(\"weekly_cases\",\n          style = \"quantile\",\n          palette = \"Blues\") +\n  tm_layout(main.title = \"Distribution of cases\",\n            main.title.position = \"center\",\n            main.title.size = 1.2,\n            legend.height = 0.45, \n            legend.width = 0.35,\n            frame = TRUE) +\n  tm_borders(alpha = 0.5) +\n  tm_compass(type=\"8star\", size = 2) +\n  tm_scale_bar() +\n  tm_grid(alpha =0.2)\n\n\n\ntmap_mode('view')\n\nAs we can see, the quantile distribution is positively skewed, with multiple bins starting at 0. This suggests that there may be clustering for dengue cases."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#global-spatial-autocorrelation",
+    "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#global-spatial-autocorrelation",
+    "title": "Take-home Exercise 2",
+    "section": "Global Spatial Autocorrelation",
+    "text": "Global Spatial Autocorrelation\n\nCreating contiguity weights\nBefore we can compute the global spatial autocorrelation statistics, we need to construct a spatial weights of the study area. The spatial weights is used to define the neighbourhood relationships between the geographical units in the study area.\n\nwm_q <- summed_sf %>%\n  mutate( nb = st_contiguity(geometry),\n          wt = st_weights(nb, style= 'W'),\n          .before = 1)\n\n\n\nComputing Global Moran’s I permutation test\nInstead of using the standard Moran’s I test, which can only give us the p value and on its own is not important without confidence, I have chosen to use Moran’s I permutation test. This test involves simulation, where more iterations to backup the analysis and confirm the representativeness of the dataset.\nBefore performing the simulation, I am going to set the seed using set_seed() to ensure that the results are reproducible. I will be running nsim = 99 simulations.\n\nset.seed(1234)\n\n\nglobal_moran_perm(wm_q$weekly_cases,\n                  wm_q$nb,\n                  wm_q$wt,\n                  nsim = 99)\n\n\n    Monte-Carlo simulation of Moran I\n\ndata:  x \nweights: listw  \nnumber of simulations + 1: 100 \n\nstatistic = 0.15977, observed rank = 100, p-value < 2.2e-16\nalternative hypothesis: two.sided\n\n\nFrom the p-value returned, I can reject the null hypothesis that the distribution of dengue cases is even. It can be inferred that there is clustering (the statistic is more than 0). This method is most convincing overall."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#local-spatial-autocorrelation",
+    "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#local-spatial-autocorrelation",
+    "title": "Take-home Exercise 2",
+    "section": "Local Spatial Autocorrelation",
+    "text": "Local Spatial Autocorrelation\nbreak"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#building-timespace-cube",
+    "href": "Take-home_Ex/Take-Home_Ex02/Take-home_Ex02a.html#building-timespace-cube",
+    "title": "Take-home Exercise 2",
+    "section": "Building timespace cube",
+    "text": "Building timespace cube\n\ndengue_cube <- spacetime(summed_cases_final, tainan,\n                      .loc_col = \"TOWNVILL\",\n                      .time_col = \"EpiWk\")\n\nis_spacetime_cube(dengue_cube)\n\n[1] TRUE"
   }
 ]

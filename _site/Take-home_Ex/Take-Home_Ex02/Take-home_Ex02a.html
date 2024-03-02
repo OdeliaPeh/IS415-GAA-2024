@@ -6,9 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2024-02-28">
+<meta name="dcterms.date" content="2024-03-03">
 
-<title>IS415-GAA-2024 - Take-home Exercise 2: Technical Guide</title>
+<title>IS415-GAA-2024 - Take-home Exercise 2</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -208,10 +208,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex02/Take-home_Ex02a.html">
  <span class="dropdown-text">Take Home Exercise 2: Technical Guide</span></a>
   </li>  
-        <li>
-    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex02/Take-home_Ex02b.html">
- <span class="dropdown-text">Take Home Exercise 2: Report</span></a>
-  </li>  
     </ul>
   </li>
 </ul>
@@ -252,7 +248,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <ul class="collapse">
   <li><a href="#brief-exploratory-data-analysis-cases-over-time" id="toc-brief-exploratory-data-analysis-cases-over-time" class="nav-link" data-scroll-target="#brief-exploratory-data-analysis-cases-over-time">Brief exploratory data analysis: cases over time</a></li>
   </ul></li>
-  <li><a href="#data-wrangling-consolidating-data-set" id="toc-data-wrangling-consolidating-data-set" class="nav-link" data-scroll-target="#data-wrangling-consolidating-data-set">Data wrangling: consolidating data set</a></li>
+  <li><a href="#data-wrangling-consolidating-data-set" id="toc-data-wrangling-consolidating-data-set" class="nav-link" data-scroll-target="#data-wrangling-consolidating-data-set">Data wrangling: consolidating data set</a>
+  <ul class="collapse">
+  <li><a href="#checking-for-null-values" id="toc-checking-for-null-values" class="nav-link" data-scroll-target="#checking-for-null-values">Checking for null values</a></li>
+  <li><a href="#computing-sum-of-cases-by-village" id="toc-computing-sum-of-cases-by-village" class="nav-link" data-scroll-target="#computing-sum-of-cases-by-village">Computing sum of cases by village</a></li>
+  </ul></li>
+  <li><a href="#global-and-local-measures-of-spatial-autocorrelation---sfdep-method" id="toc-global-and-local-measures-of-spatial-autocorrelation---sfdep-method" class="nav-link" data-scroll-target="#global-and-local-measures-of-spatial-autocorrelation---sfdep-method">Global and Local Measures of Spatial Autocorrelation - sfdep method</a>
+  <ul class="collapse">
+  <li><a href="#visualisation-using-chloropleth-map" id="toc-visualisation-using-chloropleth-map" class="nav-link" data-scroll-target="#visualisation-using-chloropleth-map">Visualisation using chloropleth map</a></li>
+  <li><a href="#global-spatial-autocorrelation" id="toc-global-spatial-autocorrelation" class="nav-link" data-scroll-target="#global-spatial-autocorrelation">Global Spatial Autocorrelation</a>
+  <ul class="collapse">
+  <li><a href="#creating-contiguity-weights" id="toc-creating-contiguity-weights" class="nav-link" data-scroll-target="#creating-contiguity-weights">Creating contiguity weights</a></li>
+  <li><a href="#computing-global-morans-i-permutation-test" id="toc-computing-global-morans-i-permutation-test" class="nav-link" data-scroll-target="#computing-global-morans-i-permutation-test">Computing Global Moran’s I permutation test</a></li>
+  </ul></li>
+  <li><a href="#local-spatial-autocorrelation" id="toc-local-spatial-autocorrelation" class="nav-link" data-scroll-target="#local-spatial-autocorrelation">Local Spatial Autocorrelation</a></li>
+  <li><a href="#building-timespace-cube" id="toc-building-timespace-cube" class="nav-link" data-scroll-target="#building-timespace-cube">Building timespace cube</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -261,7 +272,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Take-home Exercise 2: Technical Guide</h1>
+<h1 class="title">Take-home Exercise 2</h1>
 </div>
 
 
@@ -272,7 +283,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 28, 2024</p>
+      <p class="date">March 3, 2024</p>
     </div>
   </div>
     
@@ -420,27 +431,36 @@ Note
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">is.na</span>(final_cases<span class="sc">$</span>最小統計區中心點X))</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">is.na</span>(final_cases<span class="sc">$</span>最小統計區中心點Y))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Despite the code showing us that there are no missing values, checking the data table shows that there are 10 items without x or y coordinates. These values need to be removed to prevent issues in the future.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>clean_data <span class="ot">&lt;-</span> final_cases <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(最小統計區中心點X<span class="sc">==</span><span class="st">'None'</span> <span class="sc">|</span> 最小統計區中心點Y <span class="sc">&gt;</span> <span class="st">'None'</span>))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">is.na</span>(clean_data<span class="sc">$</span>最小統計區中心點X))</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">is.na</span>(clean_data<span class="sc">$</span>最小統計區中心點Y))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 <p>We can now write this cleaned data out as an rds.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(final_cases, <span class="st">"data/rds/cases_cleaned.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(clean_data, <span class="st">"data/rds/cases_cleaned.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
 <section id="importing-required-data" class="level1">
 <h1>Importing required data</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>tainan <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/tainan_study.rds"</span>)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>cases <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/cases_cleaned.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>tainan <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/tainan_study.rds"</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>cases <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/cases_cleaned.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="brief-exploratory-data-analysis-cases-over-time" class="level2">
 <h2 class="anchored" data-anchor-id="brief-exploratory-data-analysis-cases-over-time">Brief exploratory data analysis: cases over time</h2>
 <p>To visualise the spread of cases over epidemiological weeks 31-50, we can use the <em>hist()</em> function.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>cases_num <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(cases<span class="sc">$</span>EpiWk)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(cases_num, <span class="at">xlim =</span> <span class="fu">range</span>(<span class="dv">30</span>, <span class="dv">50</span>), <span class="at">xlab =</span> <span class="st">"Epidemiological Week"</span>, <span class="at">ylab =</span> <span class="st">"Frequency"</span>, <span class="at">main =</span> <span class="st">"Distribution of Cases over Time (2023)"</span>, <span class="at">col =</span> <span class="st">"blue"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>cases_num <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(cases<span class="sc">$</span>EpiWk)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(cases_num, <span class="at">xlim =</span> <span class="fu">range</span>(<span class="dv">30</span>, <span class="dv">50</span>), <span class="at">xlab =</span> <span class="st">"Epidemiological Week"</span>, <span class="at">ylab =</span> <span class="st">"Frequency"</span>, <span class="at">main =</span> <span class="st">"Distribution of Cases over Time (2023)"</span>, <span class="at">col =</span> <span class="st">"blue"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="Take-home_Ex02a_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
+<p><img src="Take-home_Ex02a_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>This histogram tells us that the number of dengue cases is normally distributed over epidemiological weeks 31-50.</p>
@@ -449,7 +469,38 @@ Note
 <section id="data-wrangling-consolidating-data-set" class="level1">
 <h1>Data wrangling: consolidating data set</h1>
 <p>With the two cleaned sets of data, I can now join them together in order to form a consolidated data set. For this exercise, I am choosing to conduct a left relational join, and intend to keep all of the observation in the <code>cases</code> data set.</p>
-<p>Before a relational join can be conducted, I will first need to rename the relevant/important attribute rows. The following rows will be renamed accordingly into Simplified Chinese using the <em>colnames()</em> function:</p>
+<p>Before a relational join can be conducted, I will first need to rename the relevant/important attribute rows, or identifiers, into Simplified Chinese using the <a href="https://datatofish.com/rename-columns-dataframe-r/"><em>colnames()</em></a> function.</p>
+<p>The best way to decide which columns need to be renamed for the purpose of joining would be to identify unique identifiers that are common across both data sets. On first inspection, this appears to be the VILLNAME attribute column.</p>
+<p>We can count the number of unique values in VILLNAME using the <a href="https://www.r-bloggers.com/2021/12/how-to-find-unique-values-in-r/"><em>table()</em></a> function.</p>
+<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Due to the size of the resulting table, the results will not be shown.</p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(tainan<span class="sc">$</span>VILLNAME)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>There are a number of village names that are returned with a count of two (eg. 仁義里), which indicates that VILLNAME is not a singular unique identifier. With that knowledge in mind, I look to the wider scale of VILLNAME, which is TOWNNAME. It is possible that this is a combined identifier, where both attribute columns together create the identifier.</p>
+<p>Instead of using <em>table()</em>, which will return a large table that is difficult to parse, I will instead make use of <em>nrow()</em>. According to the data table, there are 258 objects. If the number number of distinct objects equal 258, then it would mean that TOWNNAME and VILLNAME together are a unique identifier.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>identifier_check <span class="ot">&lt;-</span> tainan <span class="sc">%&gt;%</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">distinct</span>(TOWNNAME, VILLNAME) <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">nrow</span>()</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>identifier_check</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 258</code></pre>
+</div>
+</div>
+<p>Having found the unique identifier, I am now going to rename them to Simplified Chinese for joining purposes.</p>
 <table class="table">
 <thead>
 <tr class="header">
@@ -466,22 +517,155 @@ Note
 <td>VILLNAME</td>
 <td>居住村里</td>
 </tr>
-<tr class="odd">
-<td>geometry</td>
-<td>geometry (must be kept)</td>
-</tr>
 </tbody>
 </table>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(tainan)[<span class="fu">colnames</span>(tainan) <span class="sc">==</span> <span class="st">"TOWNNAME"</span>] <span class="ot">&lt;-</span> <span class="st">"居住鄉鎮"</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(tainan)[<span class="fu">colnames</span>(tainan) <span class="sc">==</span> <span class="st">"VILLNAME"</span>] <span class="ot">&lt;-</span> <span class="st">"居住村里"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(tainan)[<span class="fu">colnames</span>(tainan) <span class="sc">==</span> <span class="st">"TOWNNAME"</span>] <span class="ot">&lt;-</span> <span class="st">"居住鄉鎮"</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(tainan)[<span class="fu">colnames</span>(tainan) <span class="sc">==</span> <span class="st">"VILLNAME"</span>] <span class="ot">&lt;-</span> <span class="st">"居住村里"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>With these columns renamed, I can now perform a relational join between the <code>tainan</code> data set and the <code>cases</code> data set.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>tainan_cases <span class="ot">&lt;-</span> <span class="fu">left_join</span>(cases,tainan)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>tainan_consol <span class="ot">&lt;-</span> <span class="fu">left_join</span>(cases,tainan)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>I am also going to combine the two identifier columns together to make future steps easier.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>tainan_consol<span class="sc">$</span>TOWNVILL <span class="ot">&lt;-</span> <span class="fu">paste</span>(tainan_consol<span class="sc">$</span>居住鄉鎮,tainan_consol<span class="sc">$</span>居住村里)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="checking-for-null-values" class="level2">
+<h2 class="anchored" data-anchor-id="checking-for-null-values">Checking for null values</h2>
+<p>Before doing anything further, I am going to check for null values in the geometry column to ensure that everything lies within the map and that nothing was lost during the join.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">is.na</span>(tainan_consol<span class="sc">$</span>geometry))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] FALSE</code></pre>
+</div>
+</div>
+</section>
+<section id="computing-sum-of-cases-by-village" class="level2">
+<h2 class="anchored" data-anchor-id="computing-sum-of-cases-by-village">Computing sum of cases by village</h2>
+<p>Next, I will also need to compute the total sum of cases by village and week.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>summed_cases <span class="ot">&lt;-</span> tainan_consol <span class="sc">%&gt;%</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(TOWNVILL, EpiWk) <span class="sc">%&gt;%</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">weekly_cases=</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>However, doing this will result in weeks with 0 cases being dropped. To fix this, we will have to rejoin the missing village data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Creating TOWNVILL column to allow for extraction</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>tainan<span class="sc">$</span>TOWNVILL <span class="ot">=</span> <span class="fu">paste</span>(tainan<span class="sc">$</span>居住鄉鎮, tainan<span class="sc">$</span>居住村里)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Extracting all unique TOWNVILL with EpiWk</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>unique_identity <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">TOWNVILL =</span> <span class="fu">unique</span>(tainan<span class="sc">$</span>TOWNVILL),</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>                               <span class="at">EpiWk =</span> <span class="dv">31</span><span class="sc">:</span><span class="dv">50</span>)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="co">#Join to summed_cases</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>summed_cases <span class="ot">&lt;-</span> <span class="fu">left_join</span>(unique_identity, summed_cases, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"TOWNVILL"</span>, <span class="st">"EpiWk"</span>))</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="co">#Replace missing "NA" values with 0</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>summed_cases_final <span class="ot">&lt;-</span> <span class="fu">mutate</span>(summed_cases, </span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>                             <span class="at">weekly_cases =</span> <span class="fu">if_else</span>(<span class="fu">is.na</span>(weekly_cases), <span class="dv">0</span>, weekly_cases))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="global-and-local-measures-of-spatial-autocorrelation---sfdep-method" class="level1">
+<h1>Global and Local Measures of Spatial Autocorrelation - sfdep method</h1>
+<p>Now, having completed all of that, I will analyse both global and local measures of spatial autocorrelation. This will allow us to understand the following:</p>
+<ul>
+<li><p>Are dengue cases distributed evenly or are there signs of spatial clusters?</p>
+<ul>
+<li>If there are clusters, where are they located?</li>
+</ul></li>
+<li><p>Are there any outliers in cases? (eg. a cold spot neighbouring a hot spot)</p></li>
+</ul>
+<section id="visualisation-using-chloropleth-map" class="level2">
+<h2 class="anchored" data-anchor-id="visualisation-using-chloropleth-map">Visualisation using chloropleth map</h2>
+<p>First, I want to see what the map may look like using a quantile distribution. To do that, I will need to join the attributes in <code>summed_cases_final</code> and <code>tainan</code> together.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>summed_sf <span class="ot">&lt;-</span> <span class="fu">left_join</span>(tainan, summed_cases_final)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">'plot'</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(summed_sf) <span class="sc">+</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"weekly_cases"</span>,</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"quantile"</span>,</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">palette =</span> <span class="st">"Blues"</span>) <span class="sc">+</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Distribution of cases"</span>,</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.position =</span> <span class="st">"center"</span>,</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">1.2</span>,</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.height =</span> <span class="fl">0.45</span>, </span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.width =</span> <span class="fl">0.35</span>,</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">frame =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_compass</span>(<span class="at">type=</span><span class="st">"8star"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_scale_bar</span>() <span class="sc">+</span></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_grid</span>(<span class="at">alpha =</span><span class="fl">0.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Take-home_Ex02a_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">'view'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>As we can see, the quantile distribution is positively skewed, with multiple bins starting at 0. This suggests that there may be clustering for dengue cases.</p>
+</section>
+<section id="global-spatial-autocorrelation" class="level2">
+<h2 class="anchored" data-anchor-id="global-spatial-autocorrelation">Global Spatial Autocorrelation</h2>
+<section id="creating-contiguity-weights" class="level3">
+<h3 class="anchored" data-anchor-id="creating-contiguity-weights">Creating contiguity weights</h3>
+<p>Before we can compute the global spatial autocorrelation statistics, we need to construct a spatial weights of the study area. The spatial weights is used to define the neighbourhood relationships between the geographical units in the study area.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>wm_q <span class="ot">&lt;-</span> summed_sf <span class="sc">%&gt;%</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>( <span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">wt =</span> <span class="fu">st_weights</span>(nb, <span class="at">style=</span> <span class="st">'W'</span>),</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">.before =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="computing-global-morans-i-permutation-test" class="level3">
+<h3 class="anchored" data-anchor-id="computing-global-morans-i-permutation-test">Computing Global Moran’s I permutation test</h3>
+<p>Instead of using the standard Moran’s I test, which can only give us the p value and on its own is not important without confidence, I have chosen to use Moran’s I permutation test. This test involves simulation, where more iterations to backup the analysis and confirm the representativeness of the dataset.</p>
+<p>Before performing the simulation, I am going to set the seed using <em>set_seed()</em> to ensure that the results are reproducible. I will be running nsim = 99 simulations.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">global_moran_perm</span>(wm_q<span class="sc">$</span>weekly_cases,</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>                  wm_q<span class="sc">$</span>nb,</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>                  wm_q<span class="sc">$</span>wt,</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">nsim =</span> <span class="dv">99</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Monte-Carlo simulation of Moran I
+
+data:  x 
+weights: listw  
+number of simulations + 1: 100 
+
+statistic = 0.15977, observed rank = 100, p-value &lt; 2.2e-16
+alternative hypothesis: two.sided</code></pre>
+</div>
+</div>
+<p>From the p-value returned, I can reject the null hypothesis that the distribution of dengue cases is even. It can be inferred that there is clustering (the statistic is more than 0). This method is most convincing overall.</p>
+</section>
+</section>
+<section id="local-spatial-autocorrelation" class="level2">
+<h2 class="anchored" data-anchor-id="local-spatial-autocorrelation">Local Spatial Autocorrelation</h2>
+<p>break</p>
+</section>
+<section id="building-timespace-cube" class="level2">
+<h2 class="anchored" data-anchor-id="building-timespace-cube">Building timespace cube</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>dengue_cube <span class="ot">&lt;-</span> <span class="fu">spacetime</span>(summed_cases_final, tainan,</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>                      <span class="at">.loc_col =</span> <span class="st">"TOWNVILL"</span>,</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>                      <span class="at">.time_col =</span> <span class="st">"EpiWk"</span>)</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="fu">is_spacetime_cube</span>(dengue_cube)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] TRUE</code></pre>
+</div>
 </div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

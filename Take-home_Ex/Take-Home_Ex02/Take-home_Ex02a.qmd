@@ -1,5 +1,5 @@
 ---
-title: "Take-home Exercise 2: Technical Guide"
+title: "Take-home Exercise 2"
 
 execute:
   warning: false
@@ -173,12 +173,25 @@ any(is.na(final_cases$最小統計區中心點X))
 any(is.na(final_cases$最小統計區中心點Y))
 ```
 
+Despite the code showing us that there are no missing values, checking the data table shows that there are 10 items without x or y coordinates. These values need to be removed to prevent issues in the future.
+
+```{r}
+#| eval: false
+
+clean_data <- final_cases %>%
+  filter(!(最小統計區中心點X=='None' | 最小統計區中心點Y > 'None'))
+
+
+any(is.na(clean_data$最小統計區中心點X))
+any(is.na(clean_data$最小統計區中心點Y))
+```
+
 We can now write this cleaned data out as an rds.
 
 ```{r}
 #| eval: false
 
-write_rds(final_cases, "data/rds/cases_cleaned.rds")
+write_rds(clean_data, "data/rds/cases_cleaned.rds")
 ```
 
 # Importing required data
@@ -204,13 +217,40 @@ This histogram tells us that the number of dengue cases is normally distributed 
 
 With the two cleaned sets of data, I can now join them together in order to form a consolidated data set. For this exercise, I am choosing to conduct a left relational join, and intend to keep all of the observation in the `cases` data set.
 
-Before a relational join can be conducted, I will first need to rename the relevant/important attribute rows. The following rows will be renamed accordingly into Simplified Chinese using the *colnames()* function:
+Before a relational join can be conducted, I will first need to rename the relevant/important attribute rows, or identifiers, into Simplified Chinese using the [*colnames()*](https://datatofish.com/rename-columns-dataframe-r/) function.
 
-| Original | Renamed                 |
-|----------|-------------------------|
-| TOWNNAME | 居住鄉鎮                |
-| VILLNAME | 居住村里                |
-| geometry | geometry (must be kept) |
+The best way to decide which columns need to be renamed for the purpose of joining would be to identify unique identifiers that are common across both data sets. On first inspection, this appears to be the VILLNAME attribute column.
+
+We can count the number of unique values in VILLNAME using the [*table()*](https://www.r-bloggers.com/2021/12/how-to-find-unique-values-in-r/) function.
+
+::: callout-note
+Due to the size of the resulting table, the results will not be shown.
+:::
+
+```{r}
+#| eval: false
+
+table(tainan$VILLNAME)
+```
+
+There are a number of village names that are returned with a count of two (eg. 仁義里), which indicates that VILLNAME is not a singular unique identifier. With that knowledge in mind, I look to the wider scale of VILLNAME, which is TOWNNAME. It is possible that this is a combined identifier, where both attribute columns together create the identifier.
+
+Instead of using *table()*, which will return a large table that is difficult to parse, I will instead make use of *nrow()*. According to the data table, there are 258 objects. If the number number of distinct objects equal 258, then it would mean that TOWNNAME and VILLNAME together are a unique identifier.
+
+```{r}
+identifier_check <- tainan %>%
+                    distinct(TOWNNAME, VILLNAME) %>%
+                    nrow()
+
+identifier_check
+```
+
+Having found the unique identifier, I am now going to rename them to Simplified Chinese for joining purposes.
+
+| Original | Renamed  |
+|----------|----------|
+| TOWNNAME | 居住鄉鎮 |
+| VILLNAME | 居住村里 |
 
 ```{r}
 colnames(tainan)[colnames(tainan) == "TOWNNAME"] <- "居住鄉鎮"
@@ -220,5 +260,136 @@ colnames(tainan)[colnames(tainan) == "VILLNAME"] <- "居住村里"
 With these columns renamed, I can now perform a relational join between the `tainan` data set and the `cases` data set.
 
 ```{r}
-tainan_cases <- left_join(cases,tainan)
+tainan_consol <- left_join(cases,tainan)
+```
+
+I am also going to combine the two identifier columns together to make future steps easier.
+
+```{r}
+tainan_consol$TOWNVILL <- paste(tainan_consol$居住鄉鎮,tainan_consol$居住村里)
+```
+
+## Checking for null values
+
+Before doing anything further, I am going to check for null values in the geometry column to ensure that everything lies within the map and that nothing was lost during the join.
+
+```{r}
+any(is.na(tainan_consol$geometry))
+```
+
+## Computing sum of cases by village
+
+Next, I will also need to compute the total sum of cases by village and week.
+
+```{r}
+summed_cases <- tainan_consol %>%
+  group_by(TOWNVILL, EpiWk) %>%
+  summarise(weekly_cases=n()) %>%
+  st_drop_geometry()
+```
+
+However, doing this will result in weeks with 0 cases being dropped. To fix this, we will have to rejoin the missing village data.
+
+```{r}
+#Creating TOWNVILL column to allow for extraction
+tainan$TOWNVILL = paste(tainan$居住鄉鎮, tainan$居住村里)
+  
+#Extracting all unique TOWNVILL with EpiWk
+unique_identity <- expand_grid(TOWNVILL = unique(tainan$TOWNVILL),
+                               EpiWk = 31:50)
+
+#Join to summed_cases
+summed_cases <- left_join(unique_identity, summed_cases, by = c("TOWNVILL", "EpiWk"))
+
+#Replace missing "NA" values with 0
+summed_cases_final <- mutate(summed_cases, 
+                             weekly_cases = if_else(is.na(weekly_cases), 0, weekly_cases))
+
+```
+
+# Global and Local Measures of Spatial Autocorrelation - sfdep method
+
+Now, having completed all of that, I will analyse both global and local measures of spatial autocorrelation. This will allow us to understand the following:
+
+-   Are dengue cases distributed evenly or are there signs of spatial clusters?
+
+    -   If there are clusters, where are they located?
+
+-   Are there any outliers in cases? (eg. a cold spot neighbouring a hot spot)
+
+## Visualisation using chloropleth map
+
+First, I want to see what the map may look like using a quantile distribution. To do that, I will need to join the attributes in `summed_cases_final` and `tainan` together.
+
+```{r}
+summed_sf <- left_join(tainan, summed_cases_final)
+```
+
+```{r}
+tmap_mode('plot')
+
+tm_shape(summed_sf) +
+  tm_fill("weekly_cases",
+          style = "quantile",
+          palette = "Blues") +
+  tm_layout(main.title = "Distribution of cases",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
+
+tmap_mode('view')
+```
+
+As we can see, the quantile distribution is positively skewed, with multiple bins starting at 0. This suggests that there may be clustering for dengue cases.
+
+## Global Spatial Autocorrelation
+
+### Creating contiguity weights
+
+Before we can compute the global spatial autocorrelation statistics, we need to construct a spatial weights of the study area. The spatial weights is used to define the neighbourhood relationships between the geographical units in the study area.
+
+```{r}
+wm_q <- summed_sf %>%
+  mutate( nb = st_contiguity(geometry),
+          wt = st_weights(nb, style= 'W'),
+          .before = 1)
+```
+
+### Computing Global Moran’s I permutation test
+
+Instead of using the standard Moran's I test, which can only give us the p value and on its own is not important without confidence, I have chosen to use Moran's I permutation test. This test involves simulation, where more iterations to backup the analysis and confirm the representativeness of the dataset.
+
+Before performing the simulation, I am going to set the seed using *set_seed()* to ensure that the results are reproducible. I will be running nsim = 99 simulations.
+
+```{r}
+set.seed(1234)
+```
+
+```{r}
+global_moran_perm(wm_q$weekly_cases,
+                  wm_q$nb,
+                  wm_q$wt,
+                  nsim = 99)
+```
+
+From the p-value returned, I can reject the null hypothesis that the distribution of dengue cases is even. It can be inferred that there is clustering (the statistic is more than 0). This method is most convincing overall.
+
+## Local Spatial Autocorrelation
+
+break
+
+## Building timespace cube
+
+```{r}
+dengue_cube <- spacetime(summed_cases_final, tainan,
+                      .loc_col = "TOWNVILL",
+                      .time_col = "EpiWk")
+
+is_spacetime_cube(dengue_cube)
 ```
