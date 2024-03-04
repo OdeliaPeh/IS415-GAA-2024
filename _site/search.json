@@ -593,5 +593,131 @@
     "title": "Take-home Exercise 2",
     "section": "Emerging Hot Spot Analysis (EHSA)",
     "text": "Emerging Hot Spot Analysis (EHSA)\n\nComputing Local Gi* statistics\nSpecially calibrated to detect hot and cold spots. By providing the desired weights and using inverse distance there is more weight given to neighbours that are closer based on distance.\n\nwm_idw <- summed_sf %>%\n  mutate(nb = st_contiguity(geometry),\n         wts = st_inverse_distance(nb, geometry,\n                                   scale = 1,\n                                   alpha = 1),\n         .before = 1)\n\n\n\nBuilding timespace cube\nI will next build a timespace cube using summed_cases_final and tainan data sets.\n\ndengue_cube <- spacetime(summed_cases_final, tainan,\n                      .loc_col = \"TOWNVILL\",\n                      .time_col = \"EpiWk\")\n\nis_spacetime_cube(dengue_cube)\n\n[1] TRUE\n\n\n\n\nDeriving spatial weights\nbreak\n\ndengue_nb <- dengue_cube %>%\n  activate(\"geometry\")  %>% #only pulls out the geometry layer\n  mutate(nb = include_self(st_contiguity(geometry)),\n         wt = st_inverse_distance(nb, geometry,\n                                  scale = 1,\n                                  alpha = 1),\n         .before = 1) %>%\n  set_nbs(\"nb\") %>%\n  set_wts(\"wt\")\n\nNote that this dataset now has neighbors and weights for each time-slice.\n\nhead(dengue_nb)\n\n# A tibble: 6 × 5\n  TOWNVILL      EpiWk weekly_cases nb        wt       \n  <chr>         <dbl>        <dbl> <list>    <list>   \n1 安南區 青草里    31            0 <int [4]> <dbl [4]>\n2 仁德區 保安里    31            1 <int [6]> <dbl [6]>\n3 中西區 赤嵌里    31            0 <int [9]> <dbl [9]>\n4 南區 大成里      31            0 <int [7]> <dbl [7]>\n5 安南區 城北里    31            0 <int [5]> <dbl [5]>\n6 安南區 城南里    31            0 <int [8]> <dbl [8]>\n\n\nWe can use these new columns to manually calculate the local Gi* for each location.\n\ngi_stars <- dengue_nb %>% \n  group_by(EpiWk) %>% \n  mutate(gi_star = local_gstar_perm(\n    weekly_cases, nb, wt)) %>% \n  tidyr::unnest(gi_star)\n\n\n\nMann-Kendall Method\nThis helps us to detect the statistical significance of each location. It is a non-parametric method.\nWith these Gi* measures we can then evaluate each location for a trend using the Mann-Kendall test and test its significance.\n\nehsa <- gi_stars %>%\n  group_by(EpiWk) %>%\n  summarise(mk = list(\n    unclass(\n      Kendall::MannKendall(gi_star)))) %>%\n  tidyr::unnest_wider(mk)\n\nNext, it can be arranged to show signficant hot and cold spots.\n\nemerging <- ehsa %>% \n  arrange(sl, abs(tau)) %>% \n  slice(1:5)\n\nhead(emerging)\n\n# A tibble: 5 × 6\n  EpiWk    tau         sl     S      D     varS\n  <dbl>  <dbl>      <dbl> <dbl>  <dbl>    <dbl>\n1    36 -0.185 0.00000942 -6138 33128. 1919134.\n2    35 -0.183 0.0000127  -6049 33107. 1919078.\n3    32 -0.182 0.0000143  -6012 33002. 1918589.\n4    42 -0.165 0.0000786  -5471 33117. 1919110.\n5    39 -0.155 0.000203   -5147 33128. 1919137.\n\n\n\n\nMapping EHSA\nFinally, we can conduct EHSA analysis. There is a function called emerging_hotspot_analysis() from the sfdep package. It combines the Getis-Ord Gi* statistic with the Mann-Kendall trend test to determine if there is a temporal trend associated with local clustering of hot and cold spots.\nThe arguments are as follows:\n\nx: a spacetime object, must be a spacetime cube\n.var: a numeric vector in the spacetime cube with no missing values\nk: defaults to 1. The number of time lags to include in the neighborhood for calculating the local Gi*\nnsim: default 199. The number of simulations to run in calculating the simulated p-value for the local Gi*\n\n\nehsa <- emerging_hotspot_analysis(\n  x = dengue_cube, \n  .var = \"weekly_cases\", \n  k = 1, \n  nsim = 99\n)\n\nBefore EHSA can be mapped, we need to join them with summed_sf (for the geometry)\n\ntainan_ehsa <- summed_sf %>%\n  left_join(ehsa,\n            by = join_by(TOWNVILL == location))\n\nNow, I can plot the EHSA of dengue cases in Tainan.\n\nehsa_sig <- tainan_ehsa  %>%\n  filter(p_value < 0.05)\n\n\ntmap_mode(\"plot\")\ntm_shape(tainan_ehsa) +\n  tm_polygons() +\n  tm_borders(0.8) +\ntm_shape(ehsa_sig) +\n  tm_fill(\"classification\") +\n  tm_borders(0.3) +\ntm_layout(main.title = \"Emerging Hotspot and Coldspots\",\n            main.title.size = 0.8)\n\n\n\ntmap_mode('view')\n\nWe can also visualise the distribution of hot and cold spots via ggplot.\n\nggplot(data = ehsa,\n       aes(x = classification)) +\n  geom_bar() +\n  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html",
+    "title": "In-class Exercise 9",
+    "section": "",
+    "text": "We will be focusing on the sfdep method instead of the spdep method that aws used in the hands on exercise"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#geospatial-data",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#geospatial-data",
+    "title": "In-class Exercise 9",
+    "section": "Geospatial data",
+    "text": "Geospatial data\n\nshan_sf <- st_read(dsn = \"data/geospatial\", \n                   layer = \"myanmar_township_boundaries\") %>%\n  filter(ST %in% c(\"Shan (East)\", \"Shan (North)\", \"Shan (South)\")) %>%\n  select(c(2:7))\n\nReading layer `myanmar_township_boundaries' from data source \n  `C:\\OdeliaPeh\\IS415-GAA-2024\\In-class_Ex\\In-class_Ex09\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 330 features and 14 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 92.17275 ymin: 9.671252 xmax: 101.1699 ymax: 28.54554\nGeodetic CRS:  WGS 84\n\n\n\n# Returns the object type/class\nclass(shan_sf)\n\n[1] \"sf\"         \"data.frame\"\n\n# similar to shan_sf"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#aspatial-data",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#aspatial-data",
+    "title": "In-class Exercise 9",
+    "section": "Aspatial data",
+    "text": "Aspatial data\n\n# already been cleaned by prof so that it only includes Shan region\nict <- read_csv (\"data/aspatial/Shan-ICT.csv\")\n\n\nsummary(ict)\n\n District Pcode     District Name      Township Pcode     Township Name     \n Length:55          Length:55          Length:55          Length:55         \n Class :character   Class :character   Class :character   Class :character  \n Mode  :character   Mode  :character   Mode  :character   Mode  :character  \n                                                                            \n                                                                            \n                                                                            \n Total households     Radio         Television    Land line phone \n Min.   : 3318    Min.   :  115   Min.   :  728   Min.   :  20.0  \n 1st Qu.: 8711    1st Qu.: 1260   1st Qu.: 3744   1st Qu.: 266.5  \n Median :13685    Median : 2497   Median : 6117   Median : 695.0  \n Mean   :18369    Mean   : 4487   Mean   :10183   Mean   : 929.9  \n 3rd Qu.:23471    3rd Qu.: 6192   3rd Qu.:13906   3rd Qu.:1082.5  \n Max.   :82604    Max.   :30176   Max.   :62388   Max.   :6736.0  \n  Mobile phone      Computer      Internet at home\n Min.   :  150   Min.   :  20.0   Min.   :   8.0  \n 1st Qu.: 2037   1st Qu.: 121.0   1st Qu.:  88.0  \n Median : 3559   Median : 244.0   Median : 316.0  \n Mean   : 6470   Mean   : 575.5   Mean   : 760.2  \n 3rd Qu.: 7177   3rd Qu.: 507.0   3rd Qu.: 630.5  \n Max.   :48461   Max.   :6705.0   Max.   :9746.0"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#derive-new-variables-using-dplyr-package",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#derive-new-variables-using-dplyr-package",
+    "title": "In-class Exercise 9",
+    "section": "Derive new variables using dplyr package",
+    "text": "Derive new variables using dplyr package\n\n# standardized via scaling \nict_derived <- ict %>%\n  mutate(`RADIO_PR` = `Radio`/`Total households`*1000) %>%\n  mutate(`TV_PR` = `Television`/`Total households`*1000) %>%\n  mutate(`LLPHONE_PR` = `Land line phone`/`Total households`*1000) %>%\n  mutate(`MPHONE_PR` = `Mobile phone`/`Total households`*1000) %>%\n  mutate(`COMPUTER_PR` = `Computer`/`Total households`*1000) %>%\n  mutate(`INTERNET_PR` = `Internet at home`/`Total households`*1000) %>%\n  rename(`DT_PCODE` =`District Pcode`,`DT`=`District Name`,\n         `TS_PCODE`=`Township Pcode`, `TS`=`Township Name`,\n         `TT_HOUSEHOLDS`=`Total households`,\n         `RADIO`=`Radio`, `TV`=`Television`, \n         `LLPHONE`=`Land line phone`, `MPHONE`=`Mobile phone`,\n         `COMPUTER`=`Computer`, `INTERNET`=`Internet at home`) \n\n\nsummary(ict_derived)\n\n   DT_PCODE              DT              TS_PCODE              TS           \n Length:55          Length:55          Length:55          Length:55         \n Class :character   Class :character   Class :character   Class :character  \n Mode  :character   Mode  :character   Mode  :character   Mode  :character  \n                                                                            \n                                                                            \n                                                                            \n TT_HOUSEHOLDS       RADIO             TV           LLPHONE      \n Min.   : 3318   Min.   :  115   Min.   :  728   Min.   :  20.0  \n 1st Qu.: 8711   1st Qu.: 1260   1st Qu.: 3744   1st Qu.: 266.5  \n Median :13685   Median : 2497   Median : 6117   Median : 695.0  \n Mean   :18369   Mean   : 4487   Mean   :10183   Mean   : 929.9  \n 3rd Qu.:23471   3rd Qu.: 6192   3rd Qu.:13906   3rd Qu.:1082.5  \n Max.   :82604   Max.   :30176   Max.   :62388   Max.   :6736.0  \n     MPHONE         COMPUTER         INTERNET         RADIO_PR     \n Min.   :  150   Min.   :  20.0   Min.   :   8.0   Min.   : 21.05  \n 1st Qu.: 2037   1st Qu.: 121.0   1st Qu.:  88.0   1st Qu.:138.95  \n Median : 3559   Median : 244.0   Median : 316.0   Median :210.95  \n Mean   : 6470   Mean   : 575.5   Mean   : 760.2   Mean   :215.68  \n 3rd Qu.: 7177   3rd Qu.: 507.0   3rd Qu.: 630.5   3rd Qu.:268.07  \n Max.   :48461   Max.   :6705.0   Max.   :9746.0   Max.   :484.52  \n     TV_PR         LLPHONE_PR       MPHONE_PR       COMPUTER_PR    \n Min.   :116.0   Min.   :  2.78   Min.   : 36.42   Min.   : 3.278  \n 1st Qu.:450.2   1st Qu.: 22.84   1st Qu.:190.14   1st Qu.:11.832  \n Median :517.2   Median : 37.59   Median :305.27   Median :18.970  \n Mean   :509.5   Mean   : 51.09   Mean   :314.05   Mean   :24.393  \n 3rd Qu.:606.4   3rd Qu.: 69.72   3rd Qu.:428.43   3rd Qu.:29.897  \n Max.   :842.5   Max.   :181.49   Max.   :735.43   Max.   :92.402  \n  INTERNET_PR     \n Min.   :  1.041  \n 1st Qu.:  8.617  \n Median : 22.829  \n Mean   : 30.644  \n 3rd Qu.: 41.281  \n Max.   :117.985"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#hierarchy-cluster-analysis",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#hierarchy-cluster-analysis",
+    "title": "In-class Exercise 9",
+    "section": "Hierarchy Cluster Analysis",
+    "text": "Hierarchy Cluster Analysis"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#extracting-clustering-variables",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#extracting-clustering-variables",
+    "title": "In-class Exercise 9",
+    "section": "Extracting clustering variables",
+    "text": "Extracting clustering variables\n\n# prepare data for cluster analysis\n# must remove the geometry or there will be an error due to the way that clusters work\n\ncluster_vars <- shan_sf %>%\n  st_set_geometry(NULL) %>%\n  select(\"TS.x\", \"RADIO_PR\", \"TV_PR\", \"LLPHONE_PR\", \"MPHONE_PR\", \"COMPUTER_PR\")\nhead(cluster_vars,10)\n\n        TS.x RADIO_PR    TV_PR LLPHONE_PR MPHONE_PR COMPUTER_PR\n1    Mongmit 286.1852 554.1313   35.30618  260.6944    12.15939\n2    Pindaya 417.4647 505.1300   19.83584  162.3917    12.88190\n3    Ywangan 484.5215 260.5734   11.93591  120.2856     4.41465\n4   Pinlaung 231.6499 541.7189   28.54454  249.4903    13.76255\n5     Mabein 449.4903 708.6423   72.75255  392.6089    16.45042\n6      Kalaw 280.7624 611.6204   42.06478  408.7951    29.63160\n7      Pekon 318.6118 535.8494   39.83270  214.8476    18.97032\n8   Lawksawk 387.1017 630.0035   31.51366  320.5686    21.76677\n9  Nawnghkio 349.3359 547.9456   38.44960  323.0201    15.76465\n10   Kyaukme 210.9548 601.1773   39.58267  372.4930    30.94709\n\n\nThere is no row name right now, so we are going to make the town name into a row name.\n\nrow.names(cluster_vars) <- cluster_vars$\"TS.x\"\nhead(cluster_vars,10)\n\n               TS.x RADIO_PR    TV_PR LLPHONE_PR MPHONE_PR COMPUTER_PR\nMongmit     Mongmit 286.1852 554.1313   35.30618  260.6944    12.15939\nPindaya     Pindaya 417.4647 505.1300   19.83584  162.3917    12.88190\nYwangan     Ywangan 484.5215 260.5734   11.93591  120.2856     4.41465\nPinlaung   Pinlaung 231.6499 541.7189   28.54454  249.4903    13.76255\nMabein       Mabein 449.4903 708.6423   72.75255  392.6089    16.45042\nKalaw         Kalaw 280.7624 611.6204   42.06478  408.7951    29.63160\nPekon         Pekon 318.6118 535.8494   39.83270  214.8476    18.97032\nLawksawk   Lawksawk 387.1017 630.0035   31.51366  320.5686    21.76677\nNawnghkio Nawnghkio 349.3359 547.9456   38.44960  323.0201    15.76465\nKyaukme     Kyaukme 210.9548 601.1773   39.58267  372.4930    30.94709\n\n\n\nshan_ict <- select(cluster_vars, c(2:6))\nhead(shan_ict, 10)\n\n          RADIO_PR    TV_PR LLPHONE_PR MPHONE_PR COMPUTER_PR\nMongmit   286.1852 554.1313   35.30618  260.6944    12.15939\nPindaya   417.4647 505.1300   19.83584  162.3917    12.88190\nYwangan   484.5215 260.5734   11.93591  120.2856     4.41465\nPinlaung  231.6499 541.7189   28.54454  249.4903    13.76255\nMabein    449.4903 708.6423   72.75255  392.6089    16.45042\nKalaw     280.7624 611.6204   42.06478  408.7951    29.63160\nPekon     318.6118 535.8494   39.83270  214.8476    18.97032\nLawksawk  387.1017 630.0035   31.51366  320.5686    21.76677\nNawnghkio 349.3359 547.9456   38.44960  323.0201    15.76465\nKyaukme   210.9548 601.1773   39.58267  372.4930    30.94709"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#data-standardisation",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#data-standardisation",
+    "title": "In-class Exercise 9",
+    "section": "Data Standardisation",
+    "text": "Data Standardisation\nIn general, multiple variables will be used in cluster analysis. It is not unusual their values range are different. In order to avoid the cluster analysis result is baised to clustering variables with large values, it is useful to standardise the input variables before performing cluster analysis."
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#min-max-standardisation",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#min-max-standardisation",
+    "title": "In-class Exercise 9",
+    "section": "Min-Max standardisation",
+    "text": "Min-Max standardisation\n\n# min-max always 0 to 1\nshan_ict.std <- normalize(shan_ict)\nsummary(shan_ict.std)\n\n    RADIO_PR          TV_PR          LLPHONE_PR       MPHONE_PR     \n Min.   :0.0000   Min.   :0.0000   Min.   :0.0000   Min.   :0.0000  \n 1st Qu.:0.2544   1st Qu.:0.4600   1st Qu.:0.1123   1st Qu.:0.2199  \n Median :0.4097   Median :0.5523   Median :0.1948   Median :0.3846  \n Mean   :0.4199   Mean   :0.5416   Mean   :0.2703   Mean   :0.3972  \n 3rd Qu.:0.5330   3rd Qu.:0.6750   3rd Qu.:0.3746   3rd Qu.:0.5608  \n Max.   :1.0000   Max.   :1.0000   Max.   :1.0000   Max.   :1.0000  \n  COMPUTER_PR     \n Min.   :0.00000  \n 1st Qu.:0.09598  \n Median :0.17607  \n Mean   :0.23692  \n 3rd Qu.:0.29868  \n Max.   :1.00000"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#z-score-standardisation",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#z-score-standardisation",
+    "title": "In-class Exercise 9",
+    "section": "Z-score standardisation",
+    "text": "Z-score standardisation\n\n# min max varies, but std_d is always 1 and mean is always 0\nshan_ict.z <- scale(shan_ict)\ndescribe(shan_ict.z)\n\n            vars  n mean sd median trimmed  mad   min  max range  skew kurtosis\nRADIO_PR       1 55    0  1  -0.04   -0.06 0.94 -1.85 2.55  4.40  0.48    -0.27\nTV_PR          2 55    0  1   0.05    0.04 0.78 -2.47 2.09  4.56 -0.38    -0.23\nLLPHONE_PR     3 55    0  1  -0.33   -0.15 0.68 -1.19 3.20  4.39  1.37     1.49\nMPHONE_PR      4 55    0  1  -0.05   -0.06 1.01 -1.58 2.40  3.98  0.48    -0.34\nCOMPUTER_PR    5 55    0  1  -0.26   -0.18 0.64 -1.03 3.31  4.34  1.80     2.96\n              se\nRADIO_PR    0.13\nTV_PR       0.13\nLLPHONE_PR  0.13\nMPHONE_PR   0.13\nCOMPUTER_PR 0.13"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#visualising-the-standardised-clustering-variables",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#visualising-the-standardised-clustering-variables",
+    "title": "In-class Exercise 9",
+    "section": "Visualising the standardised clustering variables",
+    "text": "Visualising the standardised clustering variables\n\n# the main difference is in the data range\n\nr <- ggplot(data=ict_derived, \n             aes(x= `RADIO_PR`)) +\n  geom_histogram(bins=20, \n                 color=\"black\", \n                 fill=\"light blue\") +\n  ggtitle(\"Raw values without standardisation\")\n\nshan_ict_s_df <- as.data.frame(shan_ict.std)\ns <- ggplot(data=shan_ict_s_df, \n       aes(x=`RADIO_PR`)) +\n  geom_histogram(bins=20, \n                 color=\"black\", \n                 fill=\"light blue\") +\n  ggtitle(\"Min-Max Standardisation\")\n\nshan_ict_z_df <- as.data.frame(shan_ict.z)\nz <- ggplot(data=shan_ict_z_df, \n       aes(x=`RADIO_PR`)) +\n  geom_histogram(bins=20, \n                 color=\"black\", \n                 fill=\"light blue\") +\n  ggtitle(\"Z-score Standardisation\")\n\nggarrange(r, s, z,\n          ncol = 3,\n          nrow = 1)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#computing-hierarchical-clustering",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#computing-hierarchical-clustering",
+    "title": "In-class Exercise 9",
+    "section": "Computing hierarchical clustering",
+    "text": "Computing hierarchical clustering\n\n# MUST use a dist object class for hclust function to run\n\nhclust_ward <- hclust(proxmat, method = 'ward.D')\n\nTree plot:\n\n# this dendrogram is without grouping\n# it is able to tell you at what distance will each township merge together\nplot(hclust_ward, cex = 0.6)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#selecting-the-optimal-clustering-algorithm",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#selecting-the-optimal-clustering-algorithm",
+    "title": "In-class Exercise 9",
+    "section": "Selecting the optimal clustering algorithm",
+    "text": "Selecting the optimal clustering algorithm\nThe code chunk below will be used to compute the agglomerative coefficients of all hierarchical clustering algorithms.\n\nm <- c( \"average\", \"single\", \"complete\", \"ward\")\nnames(m) <- c( \"average\", \"single\", \"complete\", \"ward\")\n\nac <- function(x) {\n  agnes(shan_ict, method = x)$ac\n}\n\nmap_dbl(m, ac)\n\n  average    single  complete      ward \n0.8131144 0.6628705 0.8950702 0.9427730 \n\n\nWith reference to the output above, we can see that Ward’s method provides the strongest clustering structure among the four methods assessed (closest to 1). Hence, in the subsequent analysis, only Ward’s method will be used."
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#determining-optimal-clusters",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#determining-optimal-clusters",
+    "title": "In-class Exercise 9",
+    "section": "Determining Optimal Clusters",
+    "text": "Determining Optimal Clusters\nThere are three commonly used methods to determine the optimal clusters, they are:\n\nElbow Method\nAverage Silhouette Method\nGap Statistic Method\n\n\nGap statistic\n\nset.seed(12345)\ngap_stat <- clusGap(shan_ict, \n                    FUN = hcut, \n                    nstart = 25, \n                    K.max = 10, \n                    B = 50)\n# Print the result\n# read the gap specifically\nprint(gap_stat, method = \"firstmax\")\n\nClustering Gap statistic [\"clusGap\"] from call:\nclusGap(x = shan_ict, FUNcluster = hcut, K.max = 10, B = 50, nstart = 25)\nB=50 simulated reference sets, k = 1..10; spaceH0=\"scaledPCA\"\n --> Number of clusters (method 'firstmax'): 1\n          logW   E.logW       gap     SE.sim\n [1,] 8.407129 8.680794 0.2736651 0.04460994\n [2,] 8.130029 8.350712 0.2206824 0.03880130\n [3,] 7.992265 8.202550 0.2102844 0.03362652\n [4,] 7.862224 8.080655 0.2184311 0.03784781\n [5,] 7.756461 7.978022 0.2215615 0.03897071\n [6,] 7.665594 7.887777 0.2221833 0.03973087\n [7,] 7.590919 7.806333 0.2154145 0.04054939\n [8,] 7.526680 7.731619 0.2049390 0.04198644\n [9,] 7.458024 7.660795 0.2027705 0.04421874\n[10,] 7.377412 7.593858 0.2164465 0.04540947\n\n\n\n# beware local optimization\nfviz_gap_stat(gap_stat)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#interpreting-the-dendrograms",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#interpreting-the-dendrograms",
+    "title": "In-class Exercise 9",
+    "section": "Interpreting the dendrograms",
+    "text": "Interpreting the dendrograms\n\nplot(hclust_ward, cex = 0.6)\nrect.hclust(hclust_ward, \n            k = 6, \n            border = 2:5)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#visually-driven-hierarchical-clustering-analysis",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#visually-driven-hierarchical-clustering-analysis",
+    "title": "In-class Exercise 9",
+    "section": "Visually-driven hierarchical clustering analysis",
+    "text": "Visually-driven hierarchical clustering analysis\n\nTransforming the data frame into a matrix\n\nshan_ict_mat <- data.matrix(shan_ict)\n\n\n\nPlotting interactive cluster heatmap using heatmaply()\n\nheatmaply(normalize(shan_ict_mat),\n          Colv=NA,\n          dist_method = \"euclidean\",\n          hclust_method = \"ward.D\",\n          seriate = \"OLO\",\n          colors = Blues,\n          k_row = 6,\n          margins = c(NA,200,60,NA),\n          fontsize_row = 4,\n          fontsize_col = 5,\n          main=\"Geographic Segmentation of Shan State by ICT indicators\",\n          xlab = \"ICT Indicators\",\n          ylab = \"Townships of Shan State\"\n          )"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#mapping-the-clusters-formed",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#mapping-the-clusters-formed",
+    "title": "In-class Exercise 9",
+    "section": "Mapping the clusters formed",
+    "text": "Mapping the clusters formed\n\n#as.factor converts the numerical numbering of clusters to a factor data type (ordinal/nominal scale)\ngroups <- as.factor(cutree(hclust_ward, k=6))\n\nIn order to visualise the clusters, the groups object need to be appended onto shan_sf simple feature object.\nThe code chunk below form the join in three steps:\n\nthe groups list object will be converted into a matrix;\ncbind() is used to append groups matrix onto shan_sf to produce an output simple feature object called shan_sf_cluster; and\nrename of dplyr package is used to rename as.matrix.groups field as CLUSTER.\n\n\n# if we did any sorting, it is not safe to bind these together\n# cbind is a COLUMN APPEND, so you cannot sort the data at all\nshan_sf_cluster <- cbind(shan_sf, as.matrix(groups)) %>%\n  rename(`CLUSTER`=`as.matrix.groups.`)\n\n\n# note that this is not the end of the cluster analysis, there is also multivariate visualisation to know the characteristics of the cluster\nqtm(shan_sf_cluster, \"CLUSTER\")"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#computing-minimum-spanning-tree",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#computing-minimum-spanning-tree",
+    "title": "In-class Exercise 9",
+    "section": "Computing minimum spanning tree",
+    "text": "Computing minimum spanning tree\n\nCalculating edge costs\nCompute the cost of each edge\n\nlcosts <- nbcosts(shan.nb, shan_ict)\n\n\nshan.w <- nb2listw(shan.nb, \n                   lcosts, \n                   style=\"B\")\nsummary(shan.w)\n\nCharacteristics of weights list object:\nNeighbour list object:\nNumber of regions: 55 \nNumber of nonzero links: 264 \nPercentage nonzero weights: 8.727273 \nAverage number of links: 4.8 \nLink number distribution:\n\n 2  3  4  5  6  7  8  9 \n 5  9  7 21  4  3  5  1 \n5 least connected regions:\n3 5 7 9 47 with 2 links\n1 most connected region:\n8 with 9 links\n\nWeights style: B \nWeights constants summary:\n   n   nn       S0       S1        S2\nB 55 3025 76267.65 58260785 522016004"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex09/In-class_09.html#computing-minimum-spanning-tree-1",
+    "href": "In-class_Ex/In-class_Ex09/In-class_09.html#computing-minimum-spanning-tree-1",
+    "title": "In-class Exercise 9",
+    "section": "Computing minimum spanning tree",
+    "text": "Computing minimum spanning tree\n\nshan.mst <- mstree(shan.w)\n\n\nclass(shan.mst)\n\n[1] \"mst\"    \"matrix\"\n\n\n\ndim(shan.mst)\n\n[1] 54  3\n\n\n\nhead(shan.mst)\n\n     [,1] [,2]      [,3]\n[1,]   54   48  47.79331\n[2,]   54   17 109.08506\n[3,]   54   45 127.42203\n[4,]   45   52 146.78891\n[5,]   52   13 110.55197\n[6,]   13   28  92.79567\n\n\n\nplot(st_geometry(shan_sf), \n     border=grey(.5))\n\nplot.mst(shan.mst, \n         pts, \n         col=\"blue\", \n         cex.lab=0.7, \n         cex.circles=0.005, \n         add=TRUE)"
   }
 ]
