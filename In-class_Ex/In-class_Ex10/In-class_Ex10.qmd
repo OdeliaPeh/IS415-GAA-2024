@@ -339,6 +339,7 @@ In the code chunk below, [`tbl_regression()`](https://www.danieldsjoberg.com/gts
 
 ```{r}
 # note that condo.mlr1 is a model
+#intercept is typically not included by default
 tbl_regression(condo.mlr1, intercept = TRUE)
 ```
 
@@ -351,7 +352,18 @@ tbl_regression(condo.mlr1,
     label = list(sigma ~ "\U03C3"),
     include = c(r.squared, adj.r.squared, 
                 AIC, statistic,
-                p.value, sigma))
+                p.value, sigma)) # all of these summary statistics will be added at the bottom of the table
+```
+
+### Visualising model parameters
+
+Using a function from ggstatsplot
+
+```{r}
+# this presents the stats in a visual form instead of a table form
+mlr.p <- ggcoefstats(condo.mlr1,
+                     sort = "ascending")
+mlr.p
 ```
 
 ### Checking for multicolinearity
@@ -506,11 +518,11 @@ bw.fixed <- bw.gwr(formula = SELLING_PRICE ~ AREA_SQM + AGE + PROX_CBD +
                    data=condo_resale.sp, 
                    approach="CV", 
                    kernel="gaussian", 
-                   adaptive=FALSE, 
-                   longlat=FALSE)
+                   adaptive=FALSE, #decide if adaptive or fixed bandwitdh
+                   longlat=FALSE) #prevent it from calculating latlong automatically
 ```
 
-The result shows that the recommended bandwidth is 971.3405 metres.
+The result shows that the recommended bandwidth is 971.3405 metres. (the coords are already projected)
 
 ### GWModel method - fixed bandwith
 
@@ -523,7 +535,7 @@ gwr.fixed <- gwr.basic(formula = SELLING_PRICE ~ AREA_SQM + AGE + PROX_CBD +
                          PROX_SHOPPING_MALL + PROX_BUS_STOP + NO_Of_UNITS + 
                          FAMILY_FRIENDLY + FREEHOLD, 
                        data=condo_resale.sp, 
-                       bw=bw.fixed, 
+                       bw=bw.fixed, #output of the previous step
                        kernel = 'gaussian', 
                        longlat = FALSE)
 ```
@@ -531,6 +543,7 @@ gwr.fixed <- gwr.basic(formula = SELLING_PRICE ~ AREA_SQM + AGE + PROX_CBD +
 The output is saved in a list of class “gwrm”. The code below can be used to display the model output.
 
 ```{r}
+#note, you want GREATER AIC/AICC
 gwr.fixed
 ```
 
@@ -545,6 +558,7 @@ Similar to the earlier section, we will first use `bw.gwr()` to determine the re
 The code chunk used look very similar to the one used to compute the fixed bandwidth except the `adaptive` argument has changed to **TRUE**.
 
 ```{r}
+#controlled by the number of neighbours, can also use AICc value
 bw.adaptive <- bw.gwr(formula = SELLING_PRICE ~ AREA_SQM + AGE  + 
                         PROX_CBD + PROX_CHILDCARE + PROX_ELDERLYCARE    + 
                         PROX_URA_GROWTH_AREA + PROX_MRT + PROX_PARK + 
@@ -557,7 +571,7 @@ bw.adaptive <- bw.gwr(formula = SELLING_PRICE ~ AREA_SQM + AGE  +
                       longlat=FALSE)
 ```
 
-The result shows that the 30 is the recommended data points to be used.
+The result shows that the 30 is the recommended data points to be used. The number represents the number of neighbours that should be selected.
 
 ### Constructing the adaptive bandwidth gwr model
 
@@ -627,7 +641,8 @@ summary(gwr.adaptive$SDF$yhat)
 The code chunks below is used to create an interactive point symbol map.
 
 ```{r}
-tmap_mode("view")
+tmap_mode("view") #interactive
+tmap_options(check.and.fix = TRUE)
 tm_shape(mpsz_svy21)+
   tm_polygons(alpha = 0.1) +
 tm_shape(condo_resale.sf.adaptive) +  
@@ -668,6 +683,8 @@ tmap_mode("plot")
 ```
 
 ### By URA Planning Region
+
+Zoom in and out sometimes doesn't help at all.
 
 ```{r}
 tm_shape(mpsz_svy21[mpsz_svy21$REGION_N=="CENTRAL REGION", ])+
