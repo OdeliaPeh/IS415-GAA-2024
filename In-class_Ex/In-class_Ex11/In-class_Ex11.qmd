@@ -214,6 +214,20 @@ test_pred <- test_df %>%
   cbind(grf_pred_df)
 ```
 
+### mlr_pred (skipped somewhere????)
+
+```{r}
+#|eval: false
+mlr_pred <- predict(price_mlr, test_df)
+
+```
+
+```{r}
+#| eval: false
+mlr_pred_df <- as.data.frame(mlr_pred) %>%
+  rename(mlr_pred = "mlr_pred")
+```
+
 #### Saving predicted output of random forest and prepping final data table
 
 ```{r}
