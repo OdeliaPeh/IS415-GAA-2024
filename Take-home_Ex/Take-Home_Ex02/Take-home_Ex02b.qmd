@@ -1,8 +1,0 @@
----
-title: "Take-home Exercise 2: Report"
-
-execute:
-  warning: false
-  freeze: false
-date: "`r Sys.Date()`"
----
