@@ -1027,5 +1027,40 @@
     "title": "Hands-on Exercise 11: Geographically Weighted Predictive Models",
     "section": "Visualising the predicted values",
     "text": "Visualising the predicted values\nAlternatively, scatterplot can be used to visualise the actual resale price and the predicted resale price by using the code chunk below.\n\nggplot(data = test_data_p,\n       aes(x = GRF_pred,\n           y = resale_price)) +\n  geom_point()\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nA better predictive model should have the scatter point close to the diagonal line. The scatter plot can be also used to detect if any outliers in the model."
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex11/In-class_Ex11.html",
+    "href": "In-class_Ex/In-class_Ex11/In-class_Ex11.html",
+    "title": "In-class Exercise 11: Geographically Weighted Predictive Models",
+    "section": "",
+    "text": "New packages:\n\nSpatialML: calculate random forest\ntidymodels: includes other packages, used for modern modelling ESPECIALLY predictive modelling\n\nrsample: data sampling, part of tidymodel\n\nrpart: used for recursive partitioning\nggstatsplot: correlation matrix and performance analysis\n\n\npacman::p_load(sf, spdep, GWmodel, SpatialML, tmap, tidymodels, tidyverse, gtsummary, rpart, rpart.plot, ggstatsplot, performance)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex11/In-class_Ex11.html#data-sampling",
+    "href": "In-class_Ex/In-class_Ex11/In-class_Ex11.html#data-sampling",
+    "title": "In-class Exercise 11: Geographically Weighted Predictive Models",
+    "section": "Data sampling",
+    "text": "Data sampling\n\nset.seed(1234)\nresale_split <- initial_split(rs_sf, \n                              prop = 5/10,) #proportion is 50% here\n#no longer needed after the initial split\n\ntrain_data <- training(resale_split)\ntest_data <- testing(resale_split)\n\n\nwrite_rds(train_data, \"data/rds/train_data.rds\")\nwrite_rds(test_data, \"data/rds/test_data.rds\")\n\n\n# these are sf object: it is a tibblr dataframe\ntrain_data <- read_rds(\"data/rds/train_data.rds\")\ntest_data <- read_rds(\"data/rds/test_data.rds\")\n\n\n# DF is base r, tibblr df is for tidyverse\ntrain_df <- train_data %>%\n  st_drop_geometry() %>%\n  as.data.frame()\n\ntest_df <- test_data %>%\n  st_drop_geometry() %>%\n  as.data.frame()"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex11/In-class_Ex11.html#spatial-object",
+    "href": "In-class_Ex/In-class_Ex11/In-class_Ex11.html#spatial-object",
+    "title": "In-class Exercise 11: Geographically Weighted Predictive Models",
+    "section": "Spatial object",
+    "text": "Spatial object\nOnly need to change inti an SP object for calibrating GWRM."
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex11/In-class_Ex11.html#coordinate-extraction",
+    "href": "In-class_Ex/In-class_Ex11/In-class_Ex11.html#coordinate-extraction",
+    "title": "In-class Exercise 11: Geographically Weighted Predictive Models",
+    "section": "Coordinate extraction",
+    "text": "Coordinate extraction\n\ncoords <- st_coordinates(rs_sf)\ncoords_train <- st_coordinates(train_data)\ncoords_test <- st_coordinates(test_data)\n\n\nset.seed(1234)\n\nrs_rp <- rpart(\n  formula = RESALE_PRICE ~ FLOOR_AREA_SQM +\n                  STOREY_ORDER + REMAINING_LEASE_MTHS +\n                  PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +\n                  PROX_MRT + PROX_PARK + PROX_MALL + \n                  PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +\n                  WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +\n                  WITHIN_1KM_PRISCH,\n                data= train_df)\n\nrs_rp\n\nn= 7950 \n\nnode), split, n, deviance, yval\n      * denotes terminal node\n\n 1) root 7950 1.139546e+14 433705.6  \n   2) PROX_CBD>=7.974483 6665 4.472144e+13 403736.0  \n     4) REMAINING_LEASE_MTHS< 1020.5 4228 1.573100e+13 370187.4  \n       8) PROX_CBD>=14.48068 1820 2.748388e+12 337963.6 *\n       9) PROX_CBD< 14.48068 2408 9.664405e+12 394542.6 *\n     5) REMAINING_LEASE_MTHS>=1020.5 2437 1.597594e+13 461940.1  \n      10) PROX_CBD>=10.40657 2331 9.762718e+12 451754.4  \n        20) PROX_CBD>=14.20377 1088 3.345588e+12 426109.1 *\n        21) PROX_CBD< 14.20377 1243 5.075243e+12 474201.8 *\n      11) PROX_CBD< 10.40657 106 6.532500e+11 685929.1 *\n   3) PROX_CBD< 7.974483 1285 3.219685e+13 589151.4  \n     6) REMAINING_LEASE_MTHS< 930.5 745 6.613365e+12 486637.6  \n      12) FLOOR_AREA_SQM< 98.5 451 2.446537e+12 442460.5 *\n      13) FLOOR_AREA_SQM>=98.5 294 1.936449e+12 554405.7 *\n     7) REMAINING_LEASE_MTHS>=930.5 540 6.952722e+12 730582.5  \n      14) REMAINING_LEASE_MTHS< 1071.5 314 2.461969e+12 676641.3 *\n      15) REMAINING_LEASE_MTHS>=1071.5 226 2.307737e+12 805527.4 *\n\n\n\nrpart.plot(rs_rp)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex11/In-class_Ex11.html#predictive-modelling",
+    "href": "In-class_Ex/In-class_Ex11/In-class_Ex11.html#predictive-modelling",
+    "title": "In-class Exercise 11: Geographically Weighted Predictive Models",
+    "section": "Predictive modelling",
+    "text": "Predictive modelling\n\ntest_df <- cbind(test_df, coords_test)%>% st_drop_geometry()\n\ngrf_pred is a vector and needs to be converted to df\n\ngrf_pred <- read_rds(\"data/models/grf_pred.rds\")\ngrf_pred_df <- as.data.frame(grf_pred)\n\n\ntest_pred <- test_df %>%\n  select(RESALE_PRICE) %>%\n  cbind(grf_pred_df)\n\n\nSaving predicted output of random forest and prepping final data table\n\nrf_pred <- predict(rs_rf, test_df)\n\n\nrf_pred_df <- as.data.frame(rf_pred$predictions) %>%\n  rename(rf_pred = \"rf_pred$predictions\")\n\nUse Yardstick to get a test comparison\n\nyardstick::rmse(test_pred, RESALE_PRICE, mlr_pred)\n\n\n#pivoting\ntest_pred <- read_rds(\"data/models/test_pred.rds\")\n\nmc <- test_pred %>%\n  pivot_longer(cols = c(2:4),\n               names_to = \"models\",\n               values_to = \"predicted\")\n\n\n# check the website for in class exercises later, not working\n\nmc <- group_by(\"models\") %>%\n  yardstick::rmse(RESALE_PRICE, mlr_pred)\n\n\nggplot(data = test_pred,\n       aes(x=grf_pred,\n           y=RESALE_PRICE))+\n  geom_point()"
   }
 ]

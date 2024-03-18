@@ -1,0 +1,260 @@
+---
+title: "In-class Exercise 11: Geographically Weighted Predictive Models"
+
+execute:
+  warning: false
+  echo: true
+  eval: true
+  
+date: "`r Sys.Date()`"
+---
+
+# R packages
+
+New packages:
+
+-   SpatialML: calculate random forest
+
+-   tidymodels: includes other packages, used for modern modelling ESPECIALLY predictive modelling
+
+    -   rsample: data sampling, part of tidymodel
+
+-   rpart: used for recursive partitioning
+
+-   ggstatsplot: correlation matrix and performance analysis
+
+```{r}
+pacman::p_load(sf, spdep, GWmodel, SpatialML, tmap, tidymodels, tidyverse, gtsummary, rpart, rpart.plot, ggstatsplot, performance)
+```
+
+# Data import
+
+```{r}
+rs_sf <- read_rds("data/rds/HDB_resale.rds")
+```
+
+## Data sampling
+
+```{r}
+#| eval: false
+
+set.seed(1234)
+resale_split <- initial_split(rs_sf, 
+                              prop = 5/10,) #proportion is 50% here
+#no longer needed after the initial split
+
+train_data <- training(resale_split)
+test_data <- testing(resale_split)
+```
+
+```{r}
+#| eval: false
+
+write_rds(train_data, "data/rds/train_data.rds")
+write_rds(test_data, "data/rds/test_data.rds")
+```
+
+```{r}
+# these are sf object: it is a tibblr dataframe
+train_data <- read_rds("data/rds/train_data.rds")
+test_data <- read_rds("data/rds/test_data.rds")
+```
+
+```{r}
+# DF is base r, tibblr df is for tidyverse
+train_df <- train_data %>%
+  st_drop_geometry() %>%
+  as.data.frame()
+
+test_df <- test_data %>%
+  st_drop_geometry() %>%
+  as.data.frame()
+```
+
+# Computing Correlation Matrix
+
+```{r}
+mdata_nogeo <- rs_sf %>%
+  st_drop_geometry()
+corrplot::corrplot(cor(mdata_nogeo[, 2:17]), 
+                   diag = FALSE, 
+                   order = "AOE",
+                   tl.pos = "td", 
+                   tl.cex = 0.5, 
+                   method = "number", 
+                   type = "upper")
+```
+
+# Revising mlr model
+
+```{r}
+train_df <- train_df %>%
+  select(-c(PROX_CHAS))
+train_data <- train_data %>%
+  select(-c(PROX_CHAS))
+test_df <- test_df %>%
+  select(-c(PROX_CHAS))
+test_data <- test_data %>%
+  select(-c(PROX_CHAS))
+```
+
+# Non-spatial mlr
+
+```{r}
+rs_mlr <- lm(formula = RESALE_PRICE ~ FLOOR_AREA_SQM +
+                  STOREY_ORDER + REMAINING_LEASE_MTHS +
+                  PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +
+                  PROX_MRT + PROX_PARK + PROX_MALL + 
+                  PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+                  WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +
+                  WITHIN_1KM_PRISCH,
+                data=train_data)
+summary(rs_mlr)
+```
+
+# GWRM
+
+## Spatial object
+
+Only need to change inti an SP object for calibrating GWRM.
+
+## Coordinate extraction
+
+```{r}
+coords <- st_coordinates(rs_sf)
+coords_train <- st_coordinates(train_data)
+coords_test <- st_coordinates(test_data)
+```
+
+```{r}
+set.seed(1234)
+
+rs_rp <- rpart(
+  formula = RESALE_PRICE ~ FLOOR_AREA_SQM +
+                  STOREY_ORDER + REMAINING_LEASE_MTHS +
+                  PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +
+                  PROX_MRT + PROX_PARK + PROX_MALL + 
+                  PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+                  WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +
+                  WITHIN_1KM_PRISCH,
+                data= train_df)
+
+rs_rp
+```
+
+```{r}
+rpart.plot(rs_rp)
+```
+
+# Random forest
+
+```{r}
+set.seed(1234)
+
+#ranger is used in spatial machine learning
+rs_rf <- ranger(
+  formula = RESALE_PRICE ~ FLOOR_AREA_SQM +
+                  STOREY_ORDER + REMAINING_LEASE_MTHS +
+                  PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +
+                  PROX_MRT + PROX_PARK + PROX_MALL + 
+                  PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+                  WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +
+                  WITHIN_1KM_PRISCH,
+                  data= train_df,
+                  importance = "impurity")
+
+rs_rf
+```
+
+We can extract the importance as a data frame.
+
+```{r}
+vi <- as.data.frame(rs_rf$variable.importance)
+vi$variables <- rownames(vi) #creates a new row using rownames named variables
+vi <- vi %>%
+  rename(vi = "rs_rf$variable.importance")
+```
+
+```{r}
+ggplot(data = vi,
+       aes(x = vi,
+           y = reorder(variables, vi)))+ ## without reorder it will display alphabetically
+  geom_bar(stat="identity") #identity is needed to tell it how to aggregate the data (treats each row as a single observation)
+```
+
+The most important variable that contributes the most to the prediction is PROX_CBD.
+
+::: callout-note
+If the variable importance are all close to zero with only one important variable, that means that your model has problem and its because your data DOES NOT allow the model to make use of other variables. This usually happens because of a complete separation/quasi-separation issue (exclude the great predictor first)
+:::
+
+::: callout-tip
+To reduce the computational time of bandwidth training:
+
+-   Set minimum/maximum bandwidths
+:::
+
+## Predictive modelling
+
+```{r}
+#| eval: false
+test_df <- cbind(test_df, coords_test)%>% st_drop_geometry()
+```
+
+grf_pred is a vector and needs to be converted to df
+
+```{r}
+grf_pred <- read_rds("data/models/grf_pred.rds")
+grf_pred_df <- as.data.frame(grf_pred)
+```
+
+```{r}
+test_pred <- test_df %>%
+  select(RESALE_PRICE) %>%
+  cbind(grf_pred_df)
+```
+
+#### Saving predicted output of random forest and prepping final data table
+
+```{r}
+rf_pred <- predict(rs_rf, test_df)
+```
+
+```{r}
+rf_pred_df <- as.data.frame(rf_pred$predictions) %>%
+  rename(rf_pred = "rf_pred$predictions")
+```
+
+Use Yardstick to get a test comparison
+
+```{r}
+#| eval: false
+yardstick::rmse(test_pred, RESALE_PRICE, mlr_pred)
+```
+
+```{r}
+#pivoting
+test_pred <- read_rds("data/models/test_pred.rds")
+
+mc <- test_pred %>%
+  pivot_longer(cols = c(2:4),
+               names_to = "models",
+               values_to = "predicted")
+```
+
+```{r}
+#| eval: false
+
+# check the website for in class exercises later, not working
+
+mc <- group_by("models") %>%
+  yardstick::rmse(RESALE_PRICE, mlr_pred)
+```
+
+```{r}
+
+ggplot(data = test_pred,
+       aes(x=grf_pred,
+           y=RESALE_PRICE))+
+  geom_point()
+```
