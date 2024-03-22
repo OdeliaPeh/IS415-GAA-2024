@@ -3,7 +3,7 @@ title: "Take-home Exercise 2"
 
 execute:
   warning: false
-  freeze: false
+  freeze: true
 date: "`r Sys.Date()`"
 ---
 

@@ -217,7 +217,9 @@ test_pred <- test_df %>%
 ### mlr_pred (skipped somewhere????)
 
 ```{r}
-#|eval: false
+#| eval: false
+
+
 mlr_pred <- predict(price_mlr, test_df)
 
 ```
