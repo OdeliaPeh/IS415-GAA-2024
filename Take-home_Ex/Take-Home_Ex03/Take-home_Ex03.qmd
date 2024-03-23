@@ -170,4 +170,16 @@ CommCentre <- read_rds("data/rds/commCentre.rds")
 parks <- read_rds("data/rds/park.rds")
 ```
 
+# Summary statistics
+Below is the summary statistics for the most recent poplation data (June 2023).
+```{r}
+summary(population)
+```
+Because we are only looking at the elderly, we will need to filter for that age group for the correct summary statistics.
 
+```{r}
+elder_pop <- population %>%
+  filter(AG >= 55)
+
+summary(elder_pop)
+```
