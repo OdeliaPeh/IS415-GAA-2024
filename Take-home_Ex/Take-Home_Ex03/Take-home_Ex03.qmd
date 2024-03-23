@@ -28,7 +28,146 @@ I will be working on and build the prototype Shiny app module that displays the 
 First, I will load the necessary R packages.
 
 ```{r}
-pacman::p_load(tidyverse)
+pacman::p_load(sp, tmap, sf, ClustGeo, 
+               ggpubr, cluster, factoextra, NbClust,
+               heatmaply, corrplot, psych, tidyverse, GGally, spdep)
 ```
 
 # Data import and wrangling
+
+## Coastal Outline
+
+```{r}
+mpsz_sf <- st_read(dsn = "data/MP19", 
+                layer = "MPSZ-2019")
+
+#reprojection needed
+mpsz3414_sf <- st_transform(mpsz_sf, 3414)
+```
+
+## Population data
+
+```{r}
+population <- read_csv("data/population/2023_pop.csv")
+```
+
+## Eldercare services
+
+```{r}
+eldercare <- st_read(dsn = "data/Eldercare", 
+                   layer = "ELDERCARE")
+
+st_crs(eldercare)
+```
+
+There is a need to reproject to EPSG 4326
+
+```{r}
+eldercare_sf <- eldercare %>% st_transform(4326)
+st_crs(eldercare_sf)
+```
+
+## Community gardens
+
+```{r}
+gardens <- st_read("data/CommunityGarden/CommunityinBloomCIB.kml")
+
+st_crs(gardens)
+```
+
+There is a need to reproject this data.
+
+```{r}
+gardens_sf <- gardens %>% st_transform(4326)
+st_crs(gardens_sf)
+```
+
+## CHAS clinics
+
+```{r}
+chas <- st_read("data/CHAS/CHASClinics.kml")
+
+st_crs(chas)
+```
+
+Reprojection
+
+```{r}
+chas_sf <- st_transform(chas, 4326)
+st_crs(chas_sf)
+```
+
+## Parks, Hospitals, Community Centres (OSM)
+
+In order to extract parks, hospitals and community centre data, we will be using OSM.
+
+According to the documentation, the data points that we are looking for can be found in `gis_osm_pois_free_1`.
+
+```{r}
+#| eval: false
+
+pois <- st_read(dsn = "data/openstreetmap/",
+                layer = "gis_osm_pois_free_1")
+
+st_crs(pois) #crs is in WGS 84
+
+pois_sf <- pois %>% st_transform(3414)
+#so that it can be overlaid by mpsx_3414 layer
+```
+
+Now that the data is loaded, we can intersect it with the `mpsz3414_sf` layer and retrieve only the data points within Singapore.
+
+```{r}
+#| eval: false
+
+pois_sg <- pois_sf %>% st_intersection(CoastalOutline)
+```
+
+We can check the data by plotting it out.
+
+```{r}
+#| eval: false
+
+tmap_mode('plot')
+tm_shape(mpsz3414_sf) +
+  tm_fill() +
+  tm_shape(pois_sg) +
+  tm_dots()
+
+tmap_mode('view')
+```
+
+Now we can filter for the required points of interest that we want.
+
+```{r}
+#| eval: false
+
+hospitals <- pois_sg %>%
+  filter(fclass=="hospital")
+
+communityC <- pois_sg %>%
+  filter(fclass=="community_centre")
+
+parks <- pois_sg %>%
+  filter(fclass=="park")
+```
+
+### Writing out as rds
+
+We can save the OSM data as rds for future use.
+
+```{r}
+#| eval: false
+
+write_rds(hospitals, "data/rds/hospital.rds")
+write_rds(communityC, "data/rds/commCentre.rds")
+write_rds(parks, "data/rds/park.rds")
+```
+
+```{r}
+hospitals <- read_rds("data/rds/hospital.rds")
+CommCentre <- read_rds("data/rds/commCentre.rds")
+parks <- read_rds("data/rds/park.rds")
+```
+
+
