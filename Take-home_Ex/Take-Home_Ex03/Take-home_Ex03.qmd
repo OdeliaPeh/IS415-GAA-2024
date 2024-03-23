@@ -1,8 +1,34 @@
 ---
-title: "Take-home Exercise 3"
+title: "Take-home Exercise 3: Geographic segmentation prototyping"
 
 execute:
   warning: false
   freeze: false
 date: "`r Sys.Date()`"
 ---
+
+# Overview
+
+I will be working on and build the prototype Shiny app module that displays the [**geographic segmentation**]{.underline} of various facilities that are relevant to eldercare. These include:
+
+-   Eldercare Services
+
+-   Community Gardens
+
+-   Parks
+
+-   Hospitals
+
+-   Community Centres (CCs)
+
+-   CHAS clinics
+
+# R Packages
+
+First, I will load the necessary R packages.
+
+```{r}
+pacman::p_load(tidyverse)
+```
+
+# Data import and wrangling
