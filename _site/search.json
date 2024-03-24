@@ -1066,7 +1066,7 @@
   {
     "objectID": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html",
     "href": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html",
-    "title": "Take-home Exercise 3: Geographic segmentation prototyping",
+    "title": "Take-home Exercise 3: Exploration prototyping",
     "section": "",
     "text": "I will be working on and build the prototype Shiny app module that displays the geographic segmentation of various facilities that are relevant to eldercare. These include:\n\nEldercare Services\nCommunity Gardens\nParks\nHospitals\nCommunity Centres (CCs)\nCHAS clinics"
   },
@@ -1080,42 +1080,42 @@
   {
     "objectID": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#coastal-outline",
     "href": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#coastal-outline",
-    "title": "Take-home Exercise 3: Geographic segmentation prototyping",
+    "title": "Take-home Exercise 3: Exploration prototyping",
     "section": "Coastal Outline",
     "text": "Coastal Outline\n\nmpsz_sf <- st_read(dsn = \"data/MP19\", \n                layer = \"MPSZ-2019\")\n\nReading layer `MPSZ-2019' from data source \n  `C:\\OdeliaPeh\\IS415-GAA-2024\\Take-home_Ex\\Take-Home_Ex03\\data\\MP19' \n  using driver `ESRI Shapefile'\nSimple feature collection with 332 features and 6 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 103.6057 ymin: 1.158699 xmax: 104.0885 ymax: 1.470775\nGeodetic CRS:  WGS 84\n\n#reprojection needed\nmpsz3414_sf <- st_transform(mpsz_sf, 3414)"
   },
   {
     "objectID": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#population-data",
     "href": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#population-data",
-    "title": "Take-home Exercise 3: Geographic segmentation prototyping",
+    "title": "Take-home Exercise 3: Exploration prototyping",
     "section": "Population data",
     "text": "Population data\n\npopulation <- read_csv(\"data/population/2023_pop.csv\")"
   },
   {
     "objectID": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#eldercare-services",
     "href": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#eldercare-services",
-    "title": "Take-home Exercise 3: Geographic segmentation prototyping",
+    "title": "Take-home Exercise 3: Exploration prototyping",
     "section": "Eldercare services",
     "text": "Eldercare services\n\neldercare <- st_read(dsn = \"data/Eldercare\", \n                   layer = \"ELDERCARE\")\n\nReading layer `ELDERCARE' from data source \n  `C:\\OdeliaPeh\\IS415-GAA-2024\\Take-home_Ex\\Take-Home_Ex03\\data\\Eldercare' \n  using driver `ESRI Shapefile'\nSimple feature collection with 133 features and 18 fields\nGeometry type: POINT\nDimension:     XY\nBounding box:  xmin: 14481.92 ymin: 28218.43 xmax: 41665.14 ymax: 46804.9\nProjected CRS: SVY21\n\nst_crs(eldercare)\n\nCoordinate Reference System:\n  User input: SVY21 \n  wkt:\nPROJCRS[\"SVY21\",\n    BASEGEOGCRS[\"SVY21[WGS84]\",\n        DATUM[\"World Geodetic System 1984\",\n            ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n                LENGTHUNIT[\"metre\",1]],\n            ID[\"EPSG\",6326]],\n        PRIMEM[\"Greenwich\",0,\n            ANGLEUNIT[\"Degree\",0.0174532925199433]]],\n    CONVERSION[\"unnamed\",\n        METHOD[\"Transverse Mercator\",\n            ID[\"EPSG\",9807]],\n        PARAMETER[\"Latitude of natural origin\",1.36666666666667,\n            ANGLEUNIT[\"Degree\",0.0174532925199433],\n            ID[\"EPSG\",8801]],\n        PARAMETER[\"Longitude of natural origin\",103.833333333333,\n            ANGLEUNIT[\"Degree\",0.0174532925199433],\n            ID[\"EPSG\",8802]],\n        PARAMETER[\"Scale factor at natural origin\",1,\n            SCALEUNIT[\"unity\",1],\n            ID[\"EPSG\",8805]],\n        PARAMETER[\"False easting\",28001.642,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8806]],\n        PARAMETER[\"False northing\",38744.572,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8807]]],\n    CS[Cartesian,2],\n        AXIS[\"(E)\",east,\n            ORDER[1],\n            LENGTHUNIT[\"metre\",1,\n                ID[\"EPSG\",9001]]],\n        AXIS[\"(N)\",north,\n            ORDER[2],\n            LENGTHUNIT[\"metre\",1,\n                ID[\"EPSG\",9001]]]]\n\n\nThere is a need to reproject to EPSG 4326\n\neldercare_sf <- eldercare %>% st_transform(4326)\nst_crs(eldercare_sf)\n\nCoordinate Reference System:\n  User input: EPSG:4326 \n  wkt:\nGEOGCRS[\"WGS 84\",\n    ENSEMBLE[\"World Geodetic System 1984 ensemble\",\n        MEMBER[\"World Geodetic System 1984 (Transit)\"],\n        MEMBER[\"World Geodetic System 1984 (G730)\"],\n        MEMBER[\"World Geodetic System 1984 (G873)\"],\n        MEMBER[\"World Geodetic System 1984 (G1150)\"],\n        MEMBER[\"World Geodetic System 1984 (G1674)\"],\n        MEMBER[\"World Geodetic System 1984 (G1762)\"],\n        MEMBER[\"World Geodetic System 1984 (G2139)\"],\n        ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n            LENGTHUNIT[\"metre\",1]],\n        ENSEMBLEACCURACY[2.0]],\n    PRIMEM[\"Greenwich\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"geodetic latitude (Lat)\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"geodetic longitude (Lon)\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    USAGE[\n        SCOPE[\"Horizontal component of 3D system.\"],\n        AREA[\"World.\"],\n        BBOX[-90,-180,90,180]],\n    ID[\"EPSG\",4326]]"
   },
   {
     "objectID": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#community-gardens",
     "href": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#community-gardens",
-    "title": "Take-home Exercise 3: Geographic segmentation prototyping",
+    "title": "Take-home Exercise 3: Exploration prototyping",
     "section": "Community gardens",
     "text": "Community gardens\n\ngardens <- st_read(\"data/CommunityGarden/CommunityinBloomCIB.kml\")\n\nReading layer `CIB_Gardens_New' from data source \n  `C:\\OdeliaPeh\\IS415-GAA-2024\\Take-home_Ex\\Take-Home_Ex03\\data\\CommunityGarden\\CommunityinBloomCIB.kml' \n  using driver `KML'\nSimple feature collection with 1586 features and 2 fields\nGeometry type: POINT\nDimension:     XYZ\nBounding box:  xmin: 103.6337 ymin: 1.247904 xmax: 103.9901 ymax: 1.46195\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84\n\nst_crs(gardens)\n\nCoordinate Reference System:\n  User input: WGS 84 \n  wkt:\nGEOGCRS[\"WGS 84\",\n    DATUM[\"World Geodetic System 1984\",\n        ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n            LENGTHUNIT[\"metre\",1]]],\n    PRIMEM[\"Greenwich\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"geodetic latitude (Lat)\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"geodetic longitude (Lon)\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    ID[\"EPSG\",4326]]\n\n\nThere is a need to reproject this data.\n\ngardens_sf <- gardens %>% st_transform(4326)\nst_crs(gardens_sf)\n\nCoordinate Reference System:\n  User input: EPSG:4326 \n  wkt:\nGEOGCRS[\"WGS 84\",\n    ENSEMBLE[\"World Geodetic System 1984 ensemble\",\n        MEMBER[\"World Geodetic System 1984 (Transit)\"],\n        MEMBER[\"World Geodetic System 1984 (G730)\"],\n        MEMBER[\"World Geodetic System 1984 (G873)\"],\n        MEMBER[\"World Geodetic System 1984 (G1150)\"],\n        MEMBER[\"World Geodetic System 1984 (G1674)\"],\n        MEMBER[\"World Geodetic System 1984 (G1762)\"],\n        MEMBER[\"World Geodetic System 1984 (G2139)\"],\n        ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n            LENGTHUNIT[\"metre\",1]],\n        ENSEMBLEACCURACY[2.0]],\n    PRIMEM[\"Greenwich\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"geodetic latitude (Lat)\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"geodetic longitude (Lon)\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    USAGE[\n        SCOPE[\"Horizontal component of 3D system.\"],\n        AREA[\"World.\"],\n        BBOX[-90,-180,90,180]],\n    ID[\"EPSG\",4326]]"
   },
   {
     "objectID": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#chas-clinics",
     "href": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#chas-clinics",
-    "title": "Take-home Exercise 3: Geographic segmentation prototyping",
+    "title": "Take-home Exercise 3: Exploration prototyping",
     "section": "CHAS clinics",
     "text": "CHAS clinics\n\nchas <- st_read(\"data/CHAS/CHASClinics.kml\")\n\nReading layer `MOH_CHAS_CLINICS' from data source \n  `C:\\OdeliaPeh\\IS415-GAA-2024\\Take-home_Ex\\Take-Home_Ex03\\data\\CHAS\\CHASClinics.kml' \n  using driver `KML'\nSimple feature collection with 1193 features and 2 fields\nGeometry type: POINT\nDimension:     XYZ\nBounding box:  xmin: 103.5818 ymin: 1.016264 xmax: 103.9903 ymax: 1.456037\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84\n\nst_crs(chas)\n\nCoordinate Reference System:\n  User input: WGS 84 \n  wkt:\nGEOGCRS[\"WGS 84\",\n    DATUM[\"World Geodetic System 1984\",\n        ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n            LENGTHUNIT[\"metre\",1]]],\n    PRIMEM[\"Greenwich\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"geodetic latitude (Lat)\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"geodetic longitude (Lon)\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    ID[\"EPSG\",4326]]\n\n\nReprojection\n\nchas_sf <- st_transform(chas, 4326)\nst_crs(chas_sf)\n\nCoordinate Reference System:\n  User input: EPSG:4326 \n  wkt:\nGEOGCRS[\"WGS 84\",\n    ENSEMBLE[\"World Geodetic System 1984 ensemble\",\n        MEMBER[\"World Geodetic System 1984 (Transit)\"],\n        MEMBER[\"World Geodetic System 1984 (G730)\"],\n        MEMBER[\"World Geodetic System 1984 (G873)\"],\n        MEMBER[\"World Geodetic System 1984 (G1150)\"],\n        MEMBER[\"World Geodetic System 1984 (G1674)\"],\n        MEMBER[\"World Geodetic System 1984 (G1762)\"],\n        MEMBER[\"World Geodetic System 1984 (G2139)\"],\n        ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n            LENGTHUNIT[\"metre\",1]],\n        ENSEMBLEACCURACY[2.0]],\n    PRIMEM[\"Greenwich\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"geodetic latitude (Lat)\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"geodetic longitude (Lon)\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    USAGE[\n        SCOPE[\"Horizontal component of 3D system.\"],\n        AREA[\"World.\"],\n        BBOX[-90,-180,90,180]],\n    ID[\"EPSG\",4326]]"
   },
   {
     "objectID": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#parks-hospitals-community-centres-osm",
     "href": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#parks-hospitals-community-centres-osm",
-    "title": "Take-home Exercise 3: Geographic segmentation prototyping",
+    "title": "Take-home Exercise 3: Exploration prototyping",
     "section": "Parks, Hospitals, Community Centres (OSM)",
     "text": "Parks, Hospitals, Community Centres (OSM)\nIn order to extract parks, hospitals and community centre data, we will be using OSM.\nAccording to the documentation, the data points that we are looking for can be found in gis_osm_pois_free_1.\n\npois <- st_read(dsn = \"data/openstreetmap/\",\n                layer = \"gis_osm_pois_free_1\")\n\nst_crs(pois) #crs is in WGS 84\n\npois_sf <- pois %>% st_transform(3414)\n#so that it can be overlaid by mpsx_3414 layer\n\nNow that the data is loaded, we can intersect it with the mpsz3414_sf layer and retrieve only the data points within Singapore.\n\npois_sg <- pois_sf %>% st_intersection(CoastalOutline)\n\nWe can check the data by plotting it out.\n\ntmap_mode('plot')\ntm_shape(mpsz3414_sf) +\n  tm_fill() +\n  tm_shape(pois_sg) +\n  tm_dots()\n\ntmap_mode('view')\n\nNow we can filter for the required points of interest that we want.\n\nhospitals <- pois_sg %>%\n  filter(fclass==\"hospital\")\n\ncommunityC <- pois_sg %>%\n  filter(fclass==\"community_centre\")\n\nparks <- pois_sg %>%\n  filter(fclass==\"park\")\n\n\nWriting out as rds\nWe can save the OSM data as rds for future use.\n\nwrite_rds(hospitals, \"data/rds/hospital.rds\")\nwrite_rds(communityC, \"data/rds/commCentre.rds\")\nwrite_rds(parks, \"data/rds/park.rds\")\n\n\nhospitals <- read_rds(\"data/rds/hospital.rds\")\nCommCentre <- read_rds(\"data/rds/commCentre.rds\")\nparks <- read_rds(\"data/rds/park.rds\")"
   },
@@ -1125,5 +1125,26 @@
     "title": "IS415-GAA-2024",
     "section": "",
     "text": "<!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’>"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#summary-statistics",
+    "href": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#summary-statistics",
+    "title": "Take-home Exercise 3: Exploration prototyping",
+    "section": "Summary statistics",
+    "text": "Summary statistics\nBelow is the summary statistics for the most recent population data (June 2023), which is our only aspatial data set at the moment.\n\nsummary(population)\n\n      PA                 SZ                 AG                Sex           \n Length:100928      Length:100928      Length:100928      Length:100928     \n Class :character   Class :character   Class :character   Class :character  \n Mode  :character   Mode  :character   Mode  :character   Mode  :character  \n                                                                            \n                                                                            \n                                                                            \n     TOD                 Pop               Time     \n Length:100928      Min.   :   0.00   Min.   :2023  \n Class :character   1st Qu.:   0.00   1st Qu.:2023  \n Mode  :character   Median :   0.00   Median :2023  \n                    Mean   :  41.18   Mean   :2023  \n                    3rd Qu.:  20.00   3rd Qu.:2023  \n                    Max.   :2240.00   Max.   :2023  \n\n\nBecause we are only looking at the elderly, we will need to filter for that age group for the correct summary statistics and combine the total number for each age group instead of separating by housing.\n\n#currently does not work\n\nelder_pop <- population %>%\n  filter(AG >= 55)\n\ntest <- elder_pop %>%\n  filter(\"PA\"==\"PA\" | \"AG\" == \"AG\" | \"Sex\" == \"Sex\") %>%\n  mutate(total_pop = rowSums(elder_pop$Pop))"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#prototype-combining-other-factors",
+    "href": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#prototype-combining-other-factors",
+    "title": "Take-home Exercise 3: Exploration prototyping",
+    "section": "Prototype: Combining other factors",
+    "text": "Prototype: Combining other factors\nIn order to conduct geographic segmentation, I will attempt to combine the facilities into the data according to subzone."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#conclusion",
+    "href": "Take-home_Ex/Take-Home_Ex03/Take-home_Ex03.html#conclusion",
+    "title": "Take-home Exercise 3: Exploration prototyping",
+    "section": "Conclusion",
+    "text": "Conclusion\nIt is not possible to conduct geographic segmentation due to a lack of aspatial data and relevant correlated data.\nCurrently still researching possible other avenues. One possible one could be hedonistic pricing?"
   }
 ]

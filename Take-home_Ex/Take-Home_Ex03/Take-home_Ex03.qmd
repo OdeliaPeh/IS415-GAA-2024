@@ -1,5 +1,5 @@
 ---
-title: "Take-home Exercise 3: Geographic segmentation prototyping"
+title: "Take-home Exercise 3: Exploration prototyping"
 
 execute:
   warning: false
@@ -170,16 +170,30 @@ CommCentre <- read_rds("data/rds/commCentre.rds")
 parks <- read_rds("data/rds/park.rds")
 ```
 
-# Summary statistics
-Below is the summary statistics for the most recent poplation data (June 2023).
+# Geographic segmentation
+## Summary statistics
+Below is the summary statistics for the most recent population data (June 2023), which is our only aspatial data set at the moment.
 ```{r}
 summary(population)
 ```
-Because we are only looking at the elderly, we will need to filter for that age group for the correct summary statistics.
+Because we are only looking at the elderly, we will need to filter for that age group for the correct summary statistics and combine the total number for each age group instead of separating by housing.
 
 ```{r}
+#| eval: false
+#currently does not work
+
 elder_pop <- population %>%
   filter(AG >= 55)
 
-summary(elder_pop)
+test <- elder_pop %>%
+  filter("PA"=="PA" | "AG" == "AG" | "Sex" == "Sex") %>%
+  mutate(total_pop = rowSums(elder_pop$Pop))
 ```
+
+## Prototype: Combining other factors
+In order to conduct geographic segmentation, I will attempt to combine the facilities into the data according to subzone.
+
+## Conclusion
+It is not possible to conduct geographic segmentation due to a lack of aspatial data and relevant correlated data.
+
+Currently still researching possible other avenues. One possible one could be hedonistic pricing?

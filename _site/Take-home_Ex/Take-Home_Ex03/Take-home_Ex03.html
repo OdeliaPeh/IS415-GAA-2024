@@ -8,7 +8,7 @@
 
 <meta name="dcterms.date" content="2024-03-24">
 
-<title>IS415-GAA-2024 - Take-home Exercise 3: Geographic segmentation prototyping</title>
+<title>IS415-GAA-2024 - Take-home Exercise 3: Exploration prototyping</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -275,7 +275,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#writing-out-as-rds" id="toc-writing-out-as-rds" class="nav-link" data-scroll-target="#writing-out-as-rds">Writing out as rds</a></li>
   </ul></li>
   </ul></li>
+  <li><a href="#geographic-segmentation" id="toc-geographic-segmentation" class="nav-link" data-scroll-target="#geographic-segmentation">Geographic segmentation</a>
+  <ul class="collapse">
   <li><a href="#summary-statistics" id="toc-summary-statistics" class="nav-link" data-scroll-target="#summary-statistics">Summary statistics</a></li>
+  <li><a href="#prototype-combining-other-factors" id="toc-prototype-combining-other-factors" class="nav-link" data-scroll-target="#prototype-combining-other-factors">Prototype: Combining other factors</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -284,7 +289,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Take-home Exercise 3: Geographic segmentation prototyping</h1>
+<h1 class="title">Take-home Exercise 3: Exploration prototyping</h1>
 </div>
 
 
@@ -646,9 +651,11 @@ GEOGCRS["WGS 84",
 </section>
 </section>
 </section>
-<section id="summary-statistics" class="level1">
-<h1>Summary statistics</h1>
-<p>Below is the summary statistics for the most recent poplation data (June 2023).</p>
+<section id="geographic-segmentation" class="level1">
+<h1>Geographic segmentation</h1>
+<section id="summary-statistics" class="level2">
+<h2 class="anchored" data-anchor-id="summary-statistics">Summary statistics</h2>
+<p>Below is the summary statistics for the most recent population data (June 2023), which is our only aspatial data set at the moment.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(population)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -668,31 +675,29 @@ GEOGCRS["WGS 84",
                     Max.   :2240.00   Max.   :2023  </code></pre>
 </div>
 </div>
-<p>Because we are only looking at the elderly, we will need to filter for that age group for the correct summary statistics.</p>
+<p>Because we are only looking at the elderly, we will need to filter for that age group for the correct summary statistics and combine the total number for each age group instead of separating by housing.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>elder_pop <span class="ot">&lt;-</span> population <span class="sc">%&gt;%</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(AG <span class="sc">&gt;=</span> <span class="dv">55</span>)</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(elder_pop)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>      PA                 SZ                 AG                Sex           
- Length:42496       Length:42496       Length:42496       Length:42496      
- Class :character   Class :character   Class :character   Class :character  
- Mode  :character   Mode  :character   Mode  :character   Mode  :character  
-                                                                            
-                                                                            
-                                                                            
-     TOD                 Pop               Time     
- Length:42496       Min.   :   0.00   Min.   :2023  
- Class :character   1st Qu.:   0.00   1st Qu.:2023  
- Mode  :character   Median :   0.00   Median :2023  
-                    Mean   :  30.96   Mean   :2023  
-                    3rd Qu.:  10.00   3rd Qu.:2023  
-                    Max.   :2240.00   Max.   :2023  </code></pre>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">#currently does not work</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>elder_pop <span class="ot">&lt;-</span> population <span class="sc">%&gt;%</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(AG <span class="sc">&gt;=</span> <span class="dv">55</span>)</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>test <span class="ot">&lt;-</span> elder_pop <span class="sc">%&gt;%</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">"PA"</span><span class="sc">==</span><span class="st">"PA"</span> <span class="sc">|</span> <span class="st">"AG"</span> <span class="sc">==</span> <span class="st">"AG"</span> <span class="sc">|</span> <span class="st">"Sex"</span> <span class="sc">==</span> <span class="st">"Sex"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_pop =</span> <span class="fu">rowSums</span>(elder_pop<span class="sc">$</span>Pop))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
+</section>
+<section id="prototype-combining-other-factors" class="level2">
+<h2 class="anchored" data-anchor-id="prototype-combining-other-factors">Prototype: Combining other factors</h2>
+<p>In order to conduct geographic segmentation, I will attempt to combine the facilities into the data according to subzone.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>It is not possible to conduct geographic segmentation due to a lack of aspatial data and relevant correlated data.</p>
+<p>Currently still researching possible other avenues. One possible one could be hedonistic pricing?</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
