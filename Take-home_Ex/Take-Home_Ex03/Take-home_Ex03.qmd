@@ -180,11 +180,11 @@ Because we are only looking at the elderly, we will need to filter for that age 
 
 ```{r}
 #| eval: false
-#currently does not work
 
 elder_pop <- population %>%
   filter(AG >= 55)
 
+#this section currently does not work
 test <- elder_pop %>%
   filter("PA"=="PA" | "AG" == "AG" | "Sex" == "Sex") %>%
   mutate(total_pop = rowSums(elder_pop$Pop))
@@ -197,3 +197,9 @@ In order to conduct geographic segmentation, I will attempt to combine the facil
 It is not possible to conduct geographic segmentation due to a lack of aspatial data and relevant correlated data.
 
 Currently still researching possible other avenues. One possible one could be hedonistic pricing?
+
+# Alternative method: Spatial weights?
+
+```{r}
+pacman::p_load(sf, spdep, tmap, tidyverse, knitr, GWmodel)
+```
