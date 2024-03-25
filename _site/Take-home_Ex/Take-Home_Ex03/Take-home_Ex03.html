@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2024-03-24">
+<meta name="dcterms.date" content="2024-03-25">
 
 <title>IS415-GAA-2024 - Take-home Exercise 3: Exploration prototyping</title>
 <style>
@@ -219,6 +219,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex11/In-class_Ex11.html">
  <span class="dropdown-text">In-class Exercise 11</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex12/In-class_Ex12.html">
+ <span class="dropdown-text">In-class Exercise 12</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex13/In-class_Ex13.html">
+ <span class="dropdown-text">In-class Exercise 13</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -281,6 +289,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#prototype-combining-other-factors" id="toc-prototype-combining-other-factors" class="nav-link" data-scroll-target="#prototype-combining-other-factors">Prototype: Combining other factors</a></li>
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   </ul></li>
+  <li><a href="#alternative-method-spatial-weights" id="toc-alternative-method-spatial-weights" class="nav-link" data-scroll-target="#alternative-method-spatial-weights">Alternative method: Spatial weights?</a></li>
   </ul>
 </nav>
     </div>
@@ -300,7 +309,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 24, 2024</p>
+      <p class="date">March 25, 2024</p>
     </div>
   </div>
     
@@ -694,9 +703,15 @@ GEOGCRS["WGS 84",
 <h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
 <p>It is not possible to conduct geographic segmentation due to a lack of aspatial data and relevant correlated data.</p>
 <p>Currently still researching possible other avenues. One possible one could be hedonistic pricing?</p>
-
-
 </section>
+</section>
+<section id="alternative-method-spatial-weights" class="level1">
+<h1>Alternative method: Spatial weights?</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, spdep, tmap, tidyverse, knitr, GWmodel)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+
 </section>
 
 </main> <!-- /main -->

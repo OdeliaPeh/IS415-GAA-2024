@@ -1146,5 +1146,26 @@
     "title": "Take-home Exercise 3: Exploration prototyping",
     "section": "Conclusion",
     "text": "Conclusion\nIt is not possible to conduct geographic segmentation due to a lack of aspatial data and relevant correlated data.\nCurrently still researching possible other avenues. One possible one could be hedonistic pricing?"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex12/data/geospatial/ELDERCARE.html",
+    "href": "In-class_Ex/In-class_Ex12/data/geospatial/ELDERCARE.html",
+    "title": "IS415-GAA-2024",
+    "section": "",
+    "text": "<!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’>"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex12/data/geospatial/hexagons.html",
+    "href": "In-class_Ex/In-class_Ex12/data/geospatial/hexagons.html",
+    "title": "IS415-GAA-2024",
+    "section": "",
+    "text": "<!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’>"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex13/data/geospatial/MPSZ-2019.html",
+    "href": "In-class_Ex/In-class_Ex13/data/geospatial/MPSZ-2019.html",
+    "title": "IS415-GAA-2024",
+    "section": "",
+    "text": "<!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’>"
   }
 ]
