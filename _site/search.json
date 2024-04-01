@@ -1223,5 +1223,75 @@
     "title": "Hands-on Exercise 12",
     "section": "Visualising Hansen’s accessibility",
     "text": "Visualising Hansen’s accessibility\n\nExtracting map extend\n\nmapex <- st_bbox(hexagons)\n\n\ntmap_mode(\"plot\")\ntm_shape(hexagon_Hansen,\n         bbox = mapex) + \n  tm_fill(col = \"accHansen\",\n          n = 10,\n          style = \"quantile\",\n          border.col = \"black\",\n          border.lwd = 1) +\ntm_shape(eldercare) +\n  tm_symbols(size = 0.1) +\n  tm_layout(main.title = \"Accessibility to eldercare: Hansen method\",\n            main.title.position = \"center\",\n            main.title.size = 2,\n            legend.outside = FALSE,\n            legend.height = 0.45, \n            legend.width = 3.0,\n            legend.format = list(digits = 6),\n            legend.position = c(\"right\", \"top\"),\n            frame = TRUE) +\n  tm_compass(type=\"8star\", size = 2) +\n  tm_scale_bar(width = 0.15) +\n  tm_grid(lwd = 0.1, alpha = 0.5)\n\n\n\n\n\n\nStatistical graphic visualisation\nIn this section, we are going to compare the distribution of Hansen’s accessibility values by URA Planning Region.\nFirstly, we need to add the planning region field into haxegon_Hansen simple feature data frame by using the code chunk below.\n\nhexagon_Hansen <- st_join(hexagon_Hansen, mpsz, \n                          join = st_intersects)\n\n\nggplot(data=hexagon_Hansen, \n       aes(y = log(accHansen), \n           x= REGION_N)) +\n  geom_boxplot() +\n  geom_point(stat=\"summary\", \n             fun.y=\"mean\", \n             colour =\"red\", \n             size=2)\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nUse a HISTOGRAM to show skewness in distribution instead of a boxplot"
+  },
+  {
+    "objectID": "Take-home_Ex/Redo 3/data/MP19/MPSZ-2019.html",
+    "href": "Take-home_Ex/Redo 3/data/MP19/MPSZ-2019.html",
+    "title": "IS415-GAA-2024",
+    "section": "",
+    "text": "<!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’>"
+  },
+  {
+    "objectID": "Take-home_Ex/Redo 3/redone3.html",
+    "href": "Take-home_Ex/Redo 3/redone3.html",
+    "title": "Remake of Take Home Exercise 3",
+    "section": "",
+    "text": "First, I will load the necessary R packages.\n\npacman::p_load(sp, tmap, sf, ClustGeo, \n               ggpubr, cluster, factoextra, NbClust,\n               heatmaply, corrplot, psych, tidyverse, GGally, spdep)"
+  },
+  {
+    "objectID": "Take-home_Ex/Redo 3/redone3.html#coastal-outline",
+    "href": "Take-home_Ex/Redo 3/redone3.html#coastal-outline",
+    "title": "Remake of Take Home Exercise 3",
+    "section": "Coastal Outline",
+    "text": "Coastal Outline\n\nmpsz_sf <- st_read(dsn = \"data/MP19\", \n                layer = \"MPSZ-2019\")\n\nReading layer `MPSZ-2019' from data source \n  `C:\\OdeliaPeh\\IS415-GAA-2024\\Take-home_Ex\\Redo 3\\data\\MP19' \n  using driver `ESRI Shapefile'\nSimple feature collection with 332 features and 6 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 103.6057 ymin: 1.158699 xmax: 104.0885 ymax: 1.470775\nGeodetic CRS:  WGS 84\n\n#reprojection needed\nmpsz3414_sf <- st_transform(mpsz_sf, 3414)"
+  },
+  {
+    "objectID": "Take-home_Ex/Redo 3/redone3.html#population-data",
+    "href": "Take-home_Ex/Redo 3/redone3.html#population-data",
+    "title": "Remake of Take Home Exercise 3",
+    "section": "Population data",
+    "text": "Population data\n\npopulation <- read_csv(\"data/population/population2023.csv\")\n\n\nelder_pop <- population %>%\n  filter(Age >= 55) %>%\n  filter(Age != 6) %>%\n  filter(Age != 7) %>%\n  filter(Age != 8) %>%\n  filter(Age != 9)"
+  },
+  {
+    "objectID": "Take-home_Ex/Redo 3/redone3.html#eldercare",
+    "href": "Take-home_Ex/Redo 3/redone3.html#eldercare",
+    "title": "Remake of Take Home Exercise 3",
+    "section": "Eldercare",
+    "text": "Eldercare\n\neldercare <- st_read(dsn = \"data/Eldercare\", \n                   layer = \"ELDERCARE\")\n\nReading layer `ELDERCARE' from data source \n  `C:\\OdeliaPeh\\IS415-GAA-2024\\Take-home_Ex\\Redo 3\\data\\Eldercare' \n  using driver `ESRI Shapefile'\nSimple feature collection with 133 features and 18 fields\nGeometry type: POINT\nDimension:     XY\nBounding box:  xmin: 14481.92 ymin: 28218.43 xmax: 41665.14 ymax: 46804.9\nProjected CRS: SVY21\n\neldercare_sf <- eldercare %>% st_transform(4326)\nst_crs(eldercare_sf)\n\nCoordinate Reference System:\n  User input: EPSG:4326 \n  wkt:\nGEOGCRS[\"WGS 84\",\n    ENSEMBLE[\"World Geodetic System 1984 ensemble\",\n        MEMBER[\"World Geodetic System 1984 (Transit)\"],\n        MEMBER[\"World Geodetic System 1984 (G730)\"],\n        MEMBER[\"World Geodetic System 1984 (G873)\"],\n        MEMBER[\"World Geodetic System 1984 (G1150)\"],\n        MEMBER[\"World Geodetic System 1984 (G1674)\"],\n        MEMBER[\"World Geodetic System 1984 (G1762)\"],\n        MEMBER[\"World Geodetic System 1984 (G2139)\"],\n        ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n            LENGTHUNIT[\"metre\",1]],\n        ENSEMBLEACCURACY[2.0]],\n    PRIMEM[\"Greenwich\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"geodetic latitude (Lat)\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"geodetic longitude (Lon)\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    USAGE[\n        SCOPE[\"Horizontal component of 3D system.\"],\n        AREA[\"World.\"],\n        BBOX[-90,-180,90,180]],\n    ID[\"EPSG\",4326]]"
+  },
+  {
+    "objectID": "Take-home_Ex/Redo 3/redone3.html#community-gardens",
+    "href": "Take-home_Ex/Redo 3/redone3.html#community-gardens",
+    "title": "Remake of Take Home Exercise 3",
+    "section": "Community gardens",
+    "text": "Community gardens\n\ngardens <- st_read(\"data/CommunityGarden/CommunityinBloomCIB.kml\")\n\nReading layer `CIB_Gardens_New' from data source \n  `C:\\OdeliaPeh\\IS415-GAA-2024\\Take-home_Ex\\Redo 3\\data\\CommunityGarden\\CommunityinBloomCIB.kml' \n  using driver `KML'\nSimple feature collection with 1586 features and 2 fields\nGeometry type: POINT\nDimension:     XYZ\nBounding box:  xmin: 103.6337 ymin: 1.247904 xmax: 103.9901 ymax: 1.46195\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84\n\ngardens_sf <- gardens %>% st_transform(4326)\nst_crs(gardens_sf)\n\nCoordinate Reference System:\n  User input: EPSG:4326 \n  wkt:\nGEOGCRS[\"WGS 84\",\n    ENSEMBLE[\"World Geodetic System 1984 ensemble\",\n        MEMBER[\"World Geodetic System 1984 (Transit)\"],\n        MEMBER[\"World Geodetic System 1984 (G730)\"],\n        MEMBER[\"World Geodetic System 1984 (G873)\"],\n        MEMBER[\"World Geodetic System 1984 (G1150)\"],\n        MEMBER[\"World Geodetic System 1984 (G1674)\"],\n        MEMBER[\"World Geodetic System 1984 (G1762)\"],\n        MEMBER[\"World Geodetic System 1984 (G2139)\"],\n        ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n            LENGTHUNIT[\"metre\",1]],\n        ENSEMBLEACCURACY[2.0]],\n    PRIMEM[\"Greenwich\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"geodetic latitude (Lat)\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"geodetic longitude (Lon)\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    USAGE[\n        SCOPE[\"Horizontal component of 3D system.\"],\n        AREA[\"World.\"],\n        BBOX[-90,-180,90,180]],\n    ID[\"EPSG\",4326]]"
+  },
+  {
+    "objectID": "Take-home_Ex/Redo 3/redone3.html#chas-clinics",
+    "href": "Take-home_Ex/Redo 3/redone3.html#chas-clinics",
+    "title": "Remake of Take Home Exercise 3",
+    "section": "CHAS clinics",
+    "text": "CHAS clinics\n\nchas <- st_read(\"data/CHAS/CHASClinics.kml\")\n\nReading layer `MOH_CHAS_CLINICS' from data source \n  `C:\\OdeliaPeh\\IS415-GAA-2024\\Take-home_Ex\\Redo 3\\data\\CHAS\\CHASClinics.kml' \n  using driver `KML'\nSimple feature collection with 1193 features and 2 fields\nGeometry type: POINT\nDimension:     XYZ\nBounding box:  xmin: 103.5818 ymin: 1.016264 xmax: 103.9903 ymax: 1.456037\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84\n\nchas_sf <- st_transform(chas, 4326)\nst_crs(chas_sf)\n\nCoordinate Reference System:\n  User input: EPSG:4326 \n  wkt:\nGEOGCRS[\"WGS 84\",\n    ENSEMBLE[\"World Geodetic System 1984 ensemble\",\n        MEMBER[\"World Geodetic System 1984 (Transit)\"],\n        MEMBER[\"World Geodetic System 1984 (G730)\"],\n        MEMBER[\"World Geodetic System 1984 (G873)\"],\n        MEMBER[\"World Geodetic System 1984 (G1150)\"],\n        MEMBER[\"World Geodetic System 1984 (G1674)\"],\n        MEMBER[\"World Geodetic System 1984 (G1762)\"],\n        MEMBER[\"World Geodetic System 1984 (G2139)\"],\n        ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n            LENGTHUNIT[\"metre\",1]],\n        ENSEMBLEACCURACY[2.0]],\n    PRIMEM[\"Greenwich\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"geodetic latitude (Lat)\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"geodetic longitude (Lon)\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    USAGE[\n        SCOPE[\"Horizontal component of 3D system.\"],\n        AREA[\"World.\"],\n        BBOX[-90,-180,90,180]],\n    ID[\"EPSG\",4326]]"
+  },
+  {
+    "objectID": "Take-home_Ex/Redo 3/redone3.html#parks-hospitals-community-centres-osm",
+    "href": "Take-home_Ex/Redo 3/redone3.html#parks-hospitals-community-centres-osm",
+    "title": "Remake of Take Home Exercise 3",
+    "section": "Parks, Hospitals, Community Centres (OSM)",
+    "text": "Parks, Hospitals, Community Centres (OSM)\nIn order to extract parks, hospitals and community centre data, we will be using OSM.\nAccording to the documentation, the data points that we are looking for can be found in gis_osm_pois_free_1.\n\npois <- st_read(dsn = \"data/openstreetmap/\",\n                layer = \"gis_osm_pois_free_1\")\n\nst_crs(pois) #crs is in WGS 84\n\npois_sf <- pois %>% st_transform(3414)\n#so that it can be overlaid by mpsx_3414 layer\n\nNow that the data is loaded, we can intersect it with the mpsz3414_sf layer and retrieve only the data points within Singapore.\n\npois_sg <- pois_sf %>% st_intersection(CoastalOutline)\n\nWe can check the data by plotting it out.\n\ntmap_mode('plot')\ntm_shape(mpsz3414_sf) +\n  tm_fill() +\n  tm_shape(pois_sg) +\n  tm_dots()\n\ntmap_mode('view')\n\nNow we can filter for the required points of interest that we want.\n\nhospitals <- pois_sg %>%\n  filter(fclass==\"hospital\")\n\ncommunityC <- pois_sg %>%\n  filter(fclass==\"community_centre\")\n\nparks <- pois_sg %>%\n  filter(fclass==\"park\")\n\n\nWriting out as rds\nWe can save the OSM data as rds for future use.\n\nwrite_rds(hospitals, \"data/rds/hospital.rds\")\nwrite_rds(communityC, \"data/rds/commCentre.rds\")\nwrite_rds(parks, \"data/rds/park.rds\")\n\n\nhospitals <- read_rds(\"data/rds/hospital.rds\")\nCommCentre <- read_rds(\"data/rds/commCentre.rds\")\nparks <- read_rds(\"data/rds/park.rds\")"
+  },
+  {
+    "objectID": "Take-home_Ex/Redo 3/redone3.html#accessibility",
+    "href": "Take-home_Ex/Redo 3/redone3.html#accessibility",
+    "title": "Remake of Take Home Exercise 3",
+    "section": "Accessibility",
+    "text": "Accessibility\nFor this prototype, I will be using the distance matrix that is created by my groupmate Bin Hui\n\npark_acc <- read_rds(\"data/binhui/rds/park_distmat_km.rds\")\nchas_acc <- read_rds(\"data/binhui/rds/chas_distmat_km.rds\")\ncc_acc <- read_rds(\"data/binhui/rds/communitycentre_distmat_km.rds\")\neldercare_acc <- read_rds(\"data/binhui/rds/eldercare_distmat_km.rds\")"
+  },
+  {
+    "objectID": "Take-home_Ex/Redo 3/redone3.html#summary-statistics",
+    "href": "Take-home_Ex/Redo 3/redone3.html#summary-statistics",
+    "title": "Remake of Take Home Exercise 3",
+    "section": "Summary statistics",
+    "text": "Summary statistics\nBelow is the summary statistics for the most recent population data (June 2023), which is our only aspatial data set at the moment.\n\nsummary(elder_pop)\n\n      PA                 SZ                Age                Sex           \n Length:23904       Length:23904       Length:23904       Length:23904      \n Class :character   Class :character   Class :character   Class :character  \n Mode  :character   Mode  :character   Mode  :character   Mode  :character  \n                                                                            \n                                                                            \n                                                                            \n      Pop               Time     \n Min.   :   0.00   Min.   :2023  \n 1st Qu.:   0.00   1st Qu.:2023  \n Median :  10.00   Median :2023  \n Mean   :  55.11   Mean   :2023  \n 3rd Qu.:  70.00   3rd Qu.:2023  \n Max.   :1200.00   Max.   :2023"
   }
 ]

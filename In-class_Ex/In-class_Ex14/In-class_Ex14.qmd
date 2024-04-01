@@ -1,0 +1,8 @@
+---
+title: "In class exercise 14: Spatial Interaction Models"
+
+execute:
+  warning: false
+  freeze: false
+date: "`r Sys.Date()`"
+---

@@ -1,27 +1,11 @@
 ---
-title: "Take-home Exercise 3: Exploration prototyping"
+title: "Remake of Take Home Exercise 3"
 
 execute:
   warning: false
   freeze: false
 date: "`r Sys.Date()`"
 ---
-
-# Overview
-
-I will be working on and build the prototype Shiny app module that displays the [**geographic segmentation**]{.underline} of various facilities that are relevant to eldercare. These include:
-
--   Eldercare Services
-
--   Community Gardens
-
--   Parks
-
--   Hospitals
-
--   Community Centres (CCs)
-
--   CHAS clinics
 
 # R Packages
 
@@ -48,21 +32,24 @@ mpsz3414_sf <- st_transform(mpsz_sf, 3414)
 ## Population data
 
 ```{r}
-population <- read_csv("data/population/2023_pop.csv")
+population <- read_csv("data/population/population2023.csv")
 ```
 
-## Eldercare services
+```{r}
+elder_pop <- population %>%
+  filter(Age >= 55) %>%
+  filter(Age != 6) %>%
+  filter(Age != 7) %>%
+  filter(Age != 8) %>%
+  filter(Age != 9)
+```
+
+## Eldercare
 
 ```{r}
 eldercare <- st_read(dsn = "data/Eldercare", 
                    layer = "ELDERCARE")
 
-st_crs(eldercare)
-```
-
-There is a need to reproject to EPSG 4326
-
-```{r}
 eldercare_sf <- eldercare %>% st_transform(4326)
 st_crs(eldercare_sf)
 ```
@@ -72,12 +59,6 @@ st_crs(eldercare_sf)
 ```{r}
 gardens <- st_read("data/CommunityGarden/CommunityinBloomCIB.kml")
 
-st_crs(gardens)
-```
-
-There is a need to reproject this data.
-
-```{r}
 gardens_sf <- gardens %>% st_transform(4326)
 st_crs(gardens_sf)
 ```
@@ -87,12 +68,6 @@ st_crs(gardens_sf)
 ```{r}
 chas <- st_read("data/CHAS/CHASClinics.kml")
 
-st_crs(chas)
-```
-
-Reprojection
-
-```{r}
 chas_sf <- st_transform(chas, 4326)
 st_crs(chas_sf)
 ```
@@ -114,7 +89,6 @@ st_crs(pois) #crs is in WGS 84
 pois_sf <- pois %>% st_transform(3414)
 #so that it can be overlaid by mpsx_3414 layer
 ```
-
 Now that the data is loaded, we can intersect it with the `mpsz3414_sf` layer and retrieve only the data points within Singapore.
 
 ```{r}
@@ -170,42 +144,18 @@ CommCentre <- read_rds("data/rds/commCentre.rds")
 parks <- read_rds("data/rds/park.rds")
 ```
 
-# Geographic segmentation
+## Accessibility
+For this prototype, I will be using the distance matrix that is created by my groupmate Bin Hui
+```{r}
+park_acc <- read_rds("data/binhui/rds/park_distmat_km.rds")
+chas_acc <- read_rds("data/binhui/rds/chas_distmat_km.rds")
+cc_acc <- read_rds("data/binhui/rds/communitycentre_distmat_km.rds")
+eldercare_acc <- read_rds("data/binhui/rds/eldercare_distmat_km.rds")
+```
 
 ## Summary statistics
-
 Below is the summary statistics for the most recent population data (June 2023), which is our only aspatial data set at the moment.
 
 ```{r}
-summary(population)
-```
-
-Because we are only looking at the elderly, we will need to filter for that age group for the correct summary statistics and combine the total number for each age group instead of separating by housing.
-
-```{r}
-#| eval: false
-
-elder_pop <- population %>%
-  filter(AG >= 55)
-
-#this section currently does not work
-test <- elder_pop %>%
-  filter("PA"=="PA" | "AG" == "AG" | "Sex" == "Sex") %>%
-  mutate(total_pop = rowSums(elder_pop$Pop))
-```
-
-## Prototype: Combining other factors
-
-In order to conduct geographic segmentation, I will attempt to combine the facilities into the data according to subzone.
-
-## Conclusion
-
-It is not possible to conduct geographic segmentation due to a lack of aspatial data and relevant correlated data.
-
-Currently still researching possible other avenues. One possible one could be hedonistic pricing?
-
-# Alternative method: Spatial weights?
-
-```{r}
-pacman::p_load(sf, spdep, tmap, tidyverse, knitr, GWmodel)
+summary(elder_pop)
 ```
