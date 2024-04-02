@@ -1,8 +1,98 @@
 ---
-title: "In class exercise 14: Spatial Interaction Models"
+title: "In class exercise 14a: Spatial Interaction Models"
 
 execute:
   warning: false
   freeze: false
 date: "`r Sys.Date()`"
 ---
+# In class exercise
+## R packages
+`spflow` package needs to be installed from Github
+
+```{r}
+#|eval: false
+
+#run before the R package download
+devtools::install_github("LukeCe/spflow")
+```
+
+```{r}
+pacman::p_load(tmap, sf, spdep, sp, Matrix, spflow, reshape2, knitr, tidyverse)
+```
+
+## Data
+```{r}
+mpsz_nb <- read_rds("data/rds/mpsz_nb.rds")
+mpsz_flow <- read_rds("data/rds/mpsz_flow.rds")
+mpsz_var<- read_rds("data/rds/mpsz_var.rds")
+```
+## Creating `spflow_network-class` object
+
+```{r}
+mpsz_net <- spflow_network(
+  id_net = "sg",
+  node_neighbourhood = nb2mat(mpsz_nb$by_contiguity),
+  node_data = mpsz_var,
+  node_key_column = "SZ_CODE"
+)
+```
+
+```{r}
+#| eval: false
+# composes the node and data pairs (go read up where the mpsz_net_pairs comes from)
+
+mpsz_multi_net <- spflow_network_multi(mpsz_net, mpsz_net_pairs)
+```
+
+
+# Notes
+
+```{r}
+pacman::p_load(tmap, sf, DT, stplanr, tidyverse)
+```
+```{r}
+SIM_data <- read_rds("data/rds/SIM_data")
+```
+
+
+```{r}
+pacman::p_load(tmap, sf, sp,
+               performance, reshape2,
+               ggpubr, tidyverse, gtsummary)
+```
+```{r}
+SIM_data$DESTIN_AGE7_12 <- ifelse(
+  SIM_data$DESTIN_AGE7_12 == 0,
+  0.99, SIM_data$DESTIN_AGE7_12)
+SIM_data$DESTIN_AGE13_24 <- ifelse(
+  SIM_data$DESTIN_AGE13_24 == 0,
+  0.99, SIM_data$DESTIN_AGE13_24)
+SIM_data$DESTIN_AGE25_64 <- ifelse(
+  SIM_data$DESTIN_AGE25_64 == 0,
+  0.99, SIM_data$DESTIN_AGE25_64)
+SIM_data$ORIGIN_AGE7_12 <- ifelse(
+  SIM_data$ORIGIN_AGE7_12 == 0,
+  0.99, SIM_data$ORIGIN_AGE7_12)
+SIM_data$ORIGIN_AGE13_24 <- ifelse(
+  SIM_data$ORIGIN_AGE13_24 == 0,
+  0.99, SIM_data$ORIGIN_AGE13_24)
+SIM_data$ORIGIN_AGE25_64 <- ifelse(
+  SIM_data$ORIGIN_AGE25_64 == 0,
+  0.99, SIM_data$ORIGIN_AGE25_64)
+```
+
+
+```{r}
+uncSIM <- glm(formula = TRIPS ~ 
+                log(ORIGIN_AGE25_64) + 
+                log(DESTIN_AGE25_64) +
+                log(dist),
+              family = poisson(link = "log"),
+              data = SIM_data,
+              na.action = na.exclude)
+```
+
+```{r}
+tbl_regression(uncSIM, intercept = TRUE)
+```
